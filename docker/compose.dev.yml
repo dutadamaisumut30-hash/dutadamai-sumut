@@ -1,0 +1,14 @@
+# PostgreSQL untuk laptop. Port 5433 agar tidak bentrok dengan PostgreSQL bawaan (5432).
+services:
+  db:
+    image: postgres:18
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: dutadamai
+      POSTGRES_PASSWORD: dutadamai
+      POSTGRES_DB: dutadamai
+    volumes:
+      - dd_pgdata:/var/lib/postgresql/data
+volumes:
+  dd_pgdata:

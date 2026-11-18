@@ -1,0 +1,5 @@
+# Izin, auth, dan skema database wajib direview koordinator IT
+src/lib/izin.ts            @dutadamaisumut30-hash
+src/lib/auth.ts            @dutadamaisumut30-hash
+src/lib/db/schema/         @dutadamaisumut30-hash
+docs/keputusan/            @dutadamaisumut30-hash
