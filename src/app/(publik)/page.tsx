@@ -6,14 +6,20 @@ export default function Beranda() {
   return (
     <>
       <section className="hero">
-        <span className="kicker">Kabar baik dari Sumut</span>
-        <h1>{utama.judul}</h1>
-        <p className="muted">{utama.ringkasan}</p>
-        <Link href={`/berita/${utama.slug}`} className="btn">Baca tulisan</Link>
+        <div>
+          <span className="kicker">Kabar baik dari Sumut</span>
+          <h1>{utama.judul}</h1>
+          <p className="muted">{utama.ringkasan}</p>
+          <Link href={`/berita/${utama.slug}`} className="btn">Baca tulisan</Link>
+        </div>
+        <div className="card ph ph-warm" aria-hidden="true">
+          <div className="ring" />
+          <b>Foto · DKV</b>
+        </div>
       </section>
 
-      <section className="sec">
-        <h2>Tulisan terbaru</h2>
+      <section>
+        <div className="sec"><h2>Tulisan terbaru</h2></div>
         <div className="grid3">
           {lainnya.map((t) => (
             <article key={t.slug} className="card">
@@ -28,11 +34,11 @@ export default function Beranda() {
         </div>
       </section>
 
-      <section className="sec">
-        <h2>Rubrik</h2>
+      <section>
+        <div className="sec"><h2>Rubrik</h2></div>
         <div className="grid3">
           {RUBRIK.map((r) => (
-            <Link key={r.slug} href={`/rubrik/${r.slug}`} className="card pad">
+            <Link key={r.slug} href={`/rubrik/${r.slug}`} className="card pad" style={{ textDecoration: 'none' }}>
               <h3>{r.nama}</h3>
               <p className="muted">{r.deskripsi}</p>
             </Link>
