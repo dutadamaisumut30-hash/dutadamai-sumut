@@ -64,7 +64,7 @@ describe('database (migrasi dijalankan di PGlite)', () => {
   it('karya menyimpan kontak terenkripsi dan tanggal hapus (ADR 005)', async () => {
     const hapusPada = new Date('2026-12-19T00:00:00Z');
     const [k] = await db.insert(s.karya).values({
-      jenis: 'tulisan', judul: 'Puisi', oleh: 'Rani', tahap: 'keputusan',
+      kodeLacak: 'DD-UJI-0001', jenis: 'tulisan', judul: 'Puisi', oleh: 'Rani', tahap: 'keputusan',
       kontakTerenkripsi: 'v1.x.y.z', kontakHapusPada: hapusPada,
     }).returning();
     expect(k.tahap).toBe('keputusan');

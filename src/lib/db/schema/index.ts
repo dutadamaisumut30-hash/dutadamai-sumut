@@ -51,12 +51,16 @@ export const tulisan = pgTable('tulisan', {
 
 export const karya = pgTable('karya', {
   id: uuid('id').primaryKey().defaultRandom(),
+  /** Kode lacak yang diberikan ke pengirim. Dipakai halaman lacak. */
+  kodeLacak: text('kode_lacak').notNull().unique(),
   jenis: jenisKaryaEnum('jenis').notNull(),
   judul: text('judul').notNull(),
+  /** Isi tulisan. Kosong untuk desain. */
+  isi: text('isi'),
   oleh: text('oleh').notNull(),
   tahap: tahapKaryaEnum('tahap').notNull().default('formulir'),
   catatan: text('catatan'),
-  /** Kontak pengirim dalam bentuk terenkripsi (ADR 005). Kunci ada di KONTAK_ENCRYPTION_KEY. */
+  /** Kontak, nama lengkap, dan sekolah dalam bentuk JSON terenkripsi (ADR 005). Kunci: KONTAK_ENCRYPTION_KEY. */
   kontakTerenkripsi: text('kontak_terenkripsi'),
   /** Tanggal kontak dihapus. Diisi saat keputusan final (ADR 005). */
   kontakHapusPada: timestamp('kontak_hapus_pada', { withTimezone: true }),
