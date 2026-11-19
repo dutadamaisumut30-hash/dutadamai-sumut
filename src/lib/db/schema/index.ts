@@ -95,3 +95,6 @@ export const logAudit = pgTable('log_audit', {
   catatan: text('catatan'),
   pada: timestamp('pada', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Tabel Better Auth (login, sesi, 2FA). Dibuat dengan @better-auth/cli, jangan diedit tangan.
+export * from './auth';
