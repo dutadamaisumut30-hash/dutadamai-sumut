@@ -1,0 +1,3 @@
+/* Logo header. Dimuat lewat Header.tsx, bukan globals.css. */
+.brand-logo { height: 44px; width: auto; display: block; }
+@media (max-width: 480px) { .brand-logo { height: 36px; } }

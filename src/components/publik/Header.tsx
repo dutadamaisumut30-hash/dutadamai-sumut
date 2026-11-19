@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
+import './brand-logo.css';
 
 const MENU = [
   { href: '/', label: 'Berita' },
@@ -14,9 +15,9 @@ export function Header() {
   return (
     <header className="site-header">
       <div className="wrap bar">
-        <Link href="/" className="brand">
-          <span className="dot" aria-hidden="true" />
-          DutaDamai Sumut
+        <Link href="/" className="brand" aria-label="DutaDamai Sumut, ke beranda">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo/logo-dutadamai-sumut.png" alt="" width={128} height={55} className="brand-logo" />
         </Link>
         <nav className="menu-desktop" aria-label="Menu utama">
           {MENU.map((m) => (
