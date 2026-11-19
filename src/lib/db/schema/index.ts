@@ -1,0 +1,97 @@
+// Skema database. Nilai enum disalin dari modul domain dan dijaga sama oleh tes
+// (tests/unit/skema-db.test.ts), supaya drizzle-kit bisa dijalankan tanpa alias '@/'.
+import { sql } from 'drizzle-orm';
+import {
+  boolean, date, index, integer, pgEnum, pgTable, text, timestamp, uuid,
+} from 'drizzle-orm/pg-core';
+
+export const PERAN_TIM = ['blogger', 'dkv', 'editor', 'admin'] as const;
+export const STATUS_TULISAN = ['draf', 'menunggu_desain', 'didesain', 'review_akhir', 'terbit'] as const;
+export const TAHAP_KARYA = ['formulir', 'antrean', 'keputusan', 'dihubungi', 'dikembalikan', 'terbit', 'ditolak'] as const;
+export const STATUS_KOMENTAR = ['menunggu', 'tampil', 'disembunyikan'] as const;
+export const STATUS_SARAN = ['baru', 'dibaca', 'ditindak', 'diarsip'] as const;
+export const KATEGORI_SARAN = ['Saran konten', 'Masalah teknis', 'Ide kolaborasi'] as const;
+export const JENIS_KARYA = ['tulisan', 'desain'] as const;
+
+export const peranEnum = pgEnum('peran', PERAN_TIM);
+export const statusTulisanEnum = pgEnum('status_tulisan', STATUS_TULISAN);
+export const tahapKaryaEnum = pgEnum('tahap_karya', TAHAP_KARYA);
+export const statusKomentarEnum = pgEnum('status_komentar', STATUS_KOMENTAR);
+export const statusSaranEnum = pgEnum('status_saran', STATUS_SARAN);
+export const kategoriSaranEnum = pgEnum('kategori_saran', KATEGORI_SARAN);
+export const jenisKaryaEnum = pgEnum('jenis_karya', JENIS_KARYA);
+
+export const rubrik = pgTable('rubrik', {
+  slug: text('slug').primaryKey(),
+  nama: text('nama').notNull().unique(),
+  deskripsi: text('deskripsi').notNull(),
+});
+
+export const anggotaTim = pgTable('anggota_tim', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  nama: text('nama').notNull(),
+  peran: text('peran').notNull(),
+  divisi: text('divisi').notNull(),
+  tampil: boolean('tampil').notNull().default(true),
+  urutan: integer('urutan').notNull().default(0),
+  dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const tulisan = pgTable('tulisan', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  judul: text('judul').notNull(),
+  rubrikSlug: text('rubrik_slug').notNull().references(() => rubrik.slug),
+  status: statusTulisanEnum('status').notNull().default('draf'),
+  penanggung: text('penanggung').array().notNull().default(sql`'{}'`),
+  tenggat: date('tenggat').notNull(),
+  dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
+  diperbarui: timestamp('diperbarui', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('tulisan_status_idx').on(t.status)]);
+
+export const karya = pgTable('karya', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  jenis: jenisKaryaEnum('jenis').notNull(),
+  judul: text('judul').notNull(),
+  oleh: text('oleh').notNull(),
+  tahap: tahapKaryaEnum('tahap').notNull().default('formulir'),
+  catatan: text('catatan'),
+  /** Kontak pengirim dalam bentuk terenkripsi (ADR 005). Kunci ada di KONTAK_ENCRYPTION_KEY. */
+  kontakTerenkripsi: text('kontak_terenkripsi'),
+  /** Tanggal kontak dihapus. Diisi saat keputusan final (ADR 005). */
+  kontakHapusPada: timestamp('kontak_hapus_pada', { withTimezone: true }),
+  dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('karya_tahap_idx').on(t.tahap),
+  index('karya_kontak_hapus_idx').on(t.kontakHapusPada),
+]);
+
+export const komentar = pgTable('komentar', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tulisanId: uuid('tulisan_id').notNull().references(() => tulisan.id, { onDelete: 'cascade' }),
+  namaPengirim: text('nama_pengirim').notNull(),
+  isi: text('isi').notNull(),
+  status: statusKomentarEnum('status').notNull().default('menunggu'),
+  laporan: integer('laporan').notNull().default(0),
+  dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('komentar_tulisan_idx').on(t.tulisanId), index('komentar_status_idx').on(t.status)]);
+
+export const saran = pgTable('saran', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  kategori: kategoriSaranEnum('kategori').notNull(),
+  pesan: text('pesan').notNull(),
+  kontakTerenkripsi: text('kontak_terenkripsi'),
+  status: statusSaranEnum('status').notNull().default('baru'),
+  diterimaPada: timestamp('diterima_pada', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('saran_status_idx').on(t.status)]);
+
+/** Catatan aksi tim (memori proyek: log audit). Hanya ditambah, tidak diubah atau dihapus. */
+export const logAudit = pgTable('log_audit', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  peran: text('peran').notNull(),
+  aksi: text('aksi').notNull(),
+  objek: text('objek').notNull(),
+  objekId: text('objek_id'),
+  catatan: text('catatan'),
+  pada: timestamp('pada', { withTimezone: true }).notNull().defaultNow(),
+});

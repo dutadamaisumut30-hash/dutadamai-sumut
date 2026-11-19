@@ -3,7 +3,8 @@
 // 5a redaksi menghubungi kontak (sebelum terbit), 5b dikembalikan dengan catatan, 6 terbit.
 // Tahap "ditolak" tidak tampil di alur, tapi menentukan mulai retensi kontak 30 hari (ADR 005).
 
-export type TahapKarya = 'formulir' | 'antrean' | 'keputusan' | 'dihubungi' | 'dikembalikan' | 'terbit' | 'ditolak';
+export const TAHAP_KARYA = ['formulir', 'antrean', 'keputusan', 'dihubungi', 'dikembalikan', 'terbit', 'ditolak'] as const;
+export type TahapKarya = (typeof TAHAP_KARYA)[number];
 export type StatusLangkah = 'selesai' | 'aktif' | 'belum' | 'cabang';
 
 export type IdLangkah = '1' | '2' | '3' | '4' | '5a' | '5b' | '6';
