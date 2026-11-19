@@ -2,6 +2,7 @@
 .papan-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
 .papan-tools label { margin: 0; }
 .papan-tools select { width: auto; margin: 0; }
+.papan-ringkas-admin { grid-template-columns: repeat(5, 1fr); }
 .papan-ringkas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
 .papan-catatan { border: 1px solid var(--warn-ink); background: var(--warn); color: var(--warn-ink); border-radius: 12px; padding: 12px 14px; margin: 14px 0; }
 .papan-catatan textarea { margin: 6px 0 10px; }
@@ -14,6 +15,7 @@
 @media (max-width: 860px) {
   .papan-ringkas { grid-template-columns: 1fr; }
   .papan-kanban { grid-template-columns: 1fr; overflow-x: visible; }
+  .papan-ringkas-admin { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Halaman detail tulisan */
@@ -31,3 +33,4 @@
 .matriks-izin { width: 100%; border-collapse: collapse; font-size: 14px; }
 .matriks-izin th, .matriks-izin td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; }
 .matriks-izin th[scope="row"] { text-align: left; font-family: monospace; }
+

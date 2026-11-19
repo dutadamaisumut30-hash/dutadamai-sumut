@@ -31,7 +31,7 @@ export function AdminRedaksi() {
         <>
           <section style={{ marginTop: 18 }}>
             <h2>Ringkasan papan</h2>
-            <div className="papan-ringkas">
+            <div className="papan-ringkas papan-ringkas-admin">
               {STATUS_TULISAN.map((s) => (
                 <div key={s} className="card pad">
                   <div className="muted">{KOLOM[s].judul}</div>
