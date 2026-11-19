@@ -1,0 +1,16 @@
+/* Gaya khusus papan redaksi. Dimuat di halaman ini saja. */
+.papan-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
+.papan-tools label { margin: 0; }
+.papan-tools select { width: auto; margin: 0; }
+.papan-ringkas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+.papan-catatan { border: 1px solid var(--warn-ink); background: var(--warn); color: var(--warn-ink); border-radius: 12px; padding: 12px 14px; margin: 14px 0; }
+.papan-catatan textarea { margin: 6px 0 10px; }
+.papan-catatan .btn { margin-top: 6px; }
+.col.over { outline: 2px dashed var(--accent); }
+.kc { cursor: grab; }
+.kc:active { cursor: grabbing; }
+.papan-pindah { display: block; margin-top: 10px; font-size: 13px; }
+.papan-pindah select { width: 100%; margin: 4px 0 0; padding: 6px 8px; font-size: 13px; }
+@media (max-width: 860px) {
+  .papan-ringkas { grid-template-columns: 1fr; }
+}
