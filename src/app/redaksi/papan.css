@@ -13,4 +13,5 @@
 .papan-pindah select { width: 100%; margin: 4px 0 0; padding: 6px 8px; font-size: 13px; }
 @media (max-width: 860px) {
   .papan-ringkas { grid-template-columns: 1fr; }
+  .papan-kanban { grid-template-columns: 1fr; overflow-x: visible; }
 }

@@ -125,7 +125,7 @@ export function PapanRedaksi() {
         </div>
       )}
 
-      <div className="kanban">
+      <div className="kanban papan-kanban">
         {STATUS_TULISAN.map((k) => (
           <div
             key={k}
