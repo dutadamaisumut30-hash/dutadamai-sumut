@@ -26,3 +26,8 @@
 @media (max-width: 860px) {
   .detail-grid { grid-template-columns: 1fr; }
 }
+
+/* Matriks izin admin */
+.matriks-izin { width: 100%; border-collapse: collapse; font-size: 14px; }
+.matriks-izin th, .matriks-izin td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; }
+.matriks-izin th[scope="row"] { text-align: left; font-family: monospace; }
