@@ -13,6 +13,7 @@ export default function HalamanPapanRedaksi() {
       <p className="muted">
         Lima status tetap, tidak boleh dilompati. Seret kartu ke kolom berikutnya, atau pilih status dari daftar di kartu. Mundur hanya dari Review akhir, dengan catatan wajib.
       </p>
+      <p><Link href="/redaksi/dkv">Tampilan DKV →</Link></p>
       <PapanRedaksi />
       <p style={{ marginTop: 24 }}><Link href="/">Kembali ke beranda</Link></p>
     </main>

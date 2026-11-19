@@ -34,3 +34,11 @@ describe('detail tulisan (Editor)', () => {
     expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor', catatan: 'ok' }).ok).toBe(true);
   });
 });
+
+describe('tugas DKV', () => {
+  it('DKV boleh mengambil tugas dan mengirim ke review, tidak boleh terbitkan', () => {
+    expect(pindahStatus({ dari: 'menunggu_desain', ke: 'didesain', peran: 'dkv' }).ok).toBe(true);
+    expect(pindahStatus({ dari: 'didesain', ke: 'review_akhir', peran: 'dkv' }).ok).toBe(true);
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'dkv' }).ok).toBe(false);
+  });
+});
