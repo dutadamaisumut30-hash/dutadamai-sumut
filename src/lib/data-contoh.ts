@@ -115,25 +115,6 @@ export const KARYA: KaryaContoh[] = [
   { id: 'k6', jenis: 'tulisan', judul: 'Opini: Ruang aman di sekolah', oleh: '@kertasbiru', kutipan: 'Teman beda agama itu bukan topik, mereka teman.', warna: '' },
 ];
 
-export const TIM = [
-  { divisi: 'Blogger', anggota: [
-    { nama: 'Nadia Amalia', peran: 'Penulis · Cerita Sumut' },
-    { nama: 'Yosua Sinaga', peran: 'Penulis · Opini & Tips Skill' },
-  ] },
-  { divisi: 'Editor', anggota: [
-    { nama: 'Putri Lubis', peran: 'Editor · menyeleksi karya dan memoderasi komentar' },
-  ] },
-  { divisi: 'DKV', anggota: [
-    { nama: 'Raka Kurniawan', peran: 'Desainer · cover & ilustrasi' },
-    { nama: 'Sarah Manurung', peran: 'Desainer · template kartu bagikan' },
-    { nama: 'Aldi Harahap', peran: 'Desainer · infografis' },
-  ] },
-  { divisi: 'IT', anggota: [
-    { nama: 'Fikri Kesuma', peran: 'Admin · koordinator IT' },
-    { nama: 'Jessica Tan', peran: 'Developer · frontend' },
-    { nama: 'Bima Pratama', peran: 'Developer · backend' },
-  ] },
-];
 
 export function cariRubrik(slug: string): Rubrik | undefined {
   return RUBRIK.find((r) => r.slug === slug);

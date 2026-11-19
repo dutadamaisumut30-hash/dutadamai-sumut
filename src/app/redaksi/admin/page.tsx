@@ -10,6 +10,7 @@ export default function HalamanAdminRedaksi() {
       <div className="kicker">Ruang redaksi · admin</div>
       <p className="muted"><Link href="/redaksi">← Papan alur redaksi</Link></p>
       <h1>Admin redaksi</h1>
+      <p className="muted">Menu: <Link href="/redaksi/tim">Akun tim</Link> · <Link href="/redaksi/rubrik">Rubrik</Link> · <Link href="/redaksi/kotak-saran">Kotak saran</Link></p>
       <AdminRedaksi />
     </main>
   );

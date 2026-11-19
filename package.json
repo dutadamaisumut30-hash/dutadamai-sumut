@@ -1,6 +1,7 @@
 {
   "name": "dutadamai-sumut",
   "version": "0.1.0",
+  "packageManager": "pnpm@10.34.9",
   "private": true,
   "description": "Portal berita Duta Damai Sumatera Utara",
   "engines": {
