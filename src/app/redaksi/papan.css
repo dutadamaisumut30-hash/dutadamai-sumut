@@ -15,3 +15,14 @@
   .papan-ringkas { grid-template-columns: 1fr; }
   .papan-kanban { grid-template-columns: 1fr; overflow-x: visible; }
 }
+
+/* Halaman detail tulisan */
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 14px; align-items: start; }
+.alur-status { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.alur-status li { padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted, #666); }
+.alur-status li.lewat { border-color: var(--accent); }
+.alur-status li.sekarang { border-color: var(--accent); font-weight: 700; color: inherit; }
+.detail-grid textarea { margin: 6px 0 10px; }
+@media (max-width: 860px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}

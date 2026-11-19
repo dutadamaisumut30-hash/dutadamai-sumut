@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { pindahStatus, STATUS_TULISAN, type StatusTulisan } from '@/fitur/tulisan/alur-status';
 import { adalahMundur, formatTanggalPendek, KOLOM, labelTelat } from '@/fitur/tulisan/papan';
@@ -153,7 +154,7 @@ export function PapanRedaksi() {
                   onDragEnd={() => { setSeret(null); setSasaran(null); }}
                 >
                   <span className="tagl">{i.rubrik}</span>
-                  <p style={{ margin: '6px 0' }}>{i.judul}</p>
+                  <p style={{ margin: '6px 0' }}><Link href={`/redaksi/tulisan/${i.id}`}>{i.judul}</Link></p>
                   <div>
                     {i.penanggung.map((p) => <span key={p} className="av">{p}</span>)}{' '}
                     {telatLabel

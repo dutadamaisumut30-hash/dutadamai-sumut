@@ -23,3 +23,14 @@ describe('papan redaksi', () => {
     expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor', catatan: 'x' }).ok).toBe(true);
   });
 });
+
+describe('detail tulisan (Editor)', () => {
+  it('Editor boleh menerbitkan dari review akhir, DKV tidak', () => {
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'editor' }).ok).toBe(true);
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'dkv' }).ok).toBe(false);
+  });
+  it('pengembalian dari review akhir butuh catatan', () => {
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor' }).ok).toBe(false);
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor', catatan: 'ok' }).ok).toBe(true);
+  });
+});
