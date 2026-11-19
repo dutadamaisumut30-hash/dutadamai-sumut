@@ -4,8 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { kirimKarya } from '@/fitur/karya/actions';
 import { pesanBerkasTerlaluBesar } from '@/fitur/karya/kirim';
+import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
 
 type Jenis = 'tulisan' | 'desain';
+type BerkasInfo = { nama: string; tipe: string; ukuranByte: number };
 
 export function KirimForm() {
   const router = useRouter();
@@ -13,11 +15,12 @@ export function KirimForm() {
   const [jenis, setJenis] = useState<Jenis>('tulisan');
   const [judul, setJudul] = useState('');
   const [isi, setIsi] = useState('');
-  const [berkasNama, setBerkasNama] = useState('');
+  const [berkas, setBerkas] = useState<BerkasInfo | null>(null);
   const [berkasPesan, setBerkasPesan] = useState<string | null>(null);
   const [namaPanggung, setNamaPanggung] = useState('');
   const [kontak, setKontak] = useState('');
   const [buatanSendiri, setBuatanSendiri] = useState(false);
+  const [dibawahUmur18, setDibawahUmur18] = useState(false);
   const [orangTuaTahu, setOrangTuaTahu] = useState(false);
   const [tampilkanIdentitas, setTampilkanIdentitas] = useState(false);
   const [sekolah, setSekolah] = useState('');
@@ -29,7 +32,7 @@ export function KirimForm() {
     setErr('');
     if (!judul.trim()) return setErr('Judul wajib diisi.');
     if (jenis === 'tulisan' && !isi.trim()) return setErr('Isi tulisan wajib diisi.');
-    if (jenis === 'desain' && !berkasNama) return setErr('Unggah berkas desainmu dulu.');
+    if (jenis === 'desain' && !berkas) return setErr('Unggah berkas desainmu dulu.');
     setLangkah(3);
   }
 
@@ -38,15 +41,20 @@ export function KirimForm() {
     if (!namaPanggung.trim()) return setErr('Nama panggung wajib diisi.');
     if (kontak.trim().length < 3) return setErr('Kontak wajib diisi, supaya redaksi bisa menghubungimu.');
     if (!buatanSendiri) return setErr('Centang bahwa karya ini buatan sendiri.');
+    if (dibawahUmur18 && !orangTuaTahu) {
+      return setErr('Karya dari peserta di bawah 18 tahun wajib disetujui orang tua atau wali.');
+    }
 
     startTransition(async () => {
       const hasil = await kirimKarya({
         jenis,
         judul,
         isi,
+        berkas: jenis === 'desain' ? berkas ?? undefined : undefined,
         namaPanggung,
         kontak,
         buatanSendiri: true,
+        dibawahUmur18,
         orangTuaTahu,
         tampilkanIdentitas,
         sekolah: tampilkanIdentitas ? sekolah : undefined,
@@ -91,7 +99,7 @@ export function KirimForm() {
           {jenis === 'tulisan' ? (
             <>
               <label htmlFor="isi">Isi tulisan</label>
-              <textarea id="isi" rows={8} value={isi} onChange={(e) => setIsi(e.target.value)} placeholder="Tulis isinya di sini" />
+              <textarea id="isi" rows={8} value={isi} onChange={(e) => setIsi(e.target.value)} placeholder="Tulis isinya di sini" maxLength={20000} />
             </>
           ) : (
             <>
@@ -102,7 +110,7 @@ export function KirimForm() {
                 accept=".jpg,.jpeg,.png"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  setBerkasNama(f?.name ?? '');
+                  setBerkas(f ? { nama: f.name, tipe: f.type, ukuranByte: f.size } : null);
                   setBerkasPesan(f ? pesanBerkasTerlaluBesar(f.size) : null);
                 }}
               />
@@ -129,9 +137,15 @@ export function KirimForm() {
             Karya ini buatan sendiri (wajib)
           </label>
           <label className="chk">
-            <input type="checkbox" checked={orangTuaTahu} onChange={(e) => setOrangTuaTahu(e.target.checked)} />
-            Orang tua atau wali tahu, bila saya di bawah 18 tahun
+            <input type="checkbox" checked={dibawahUmur18} onChange={(e) => { setDibawahUmur18(e.target.checked); if (!e.target.checked) setOrangTuaTahu(false); }} />
+            Saya di bawah 18 tahun
           </label>
+          {dibawahUmur18 && (
+            <label className="chk">
+              <input type="checkbox" checked={orangTuaTahu} onChange={(e) => setOrangTuaTahu(e.target.checked)} />
+              Orang tua atau wali tahu dan menyetujui karya ini dikirim (wajib)
+            </label>
+          )}
           <label className="chk">
             <input type="checkbox" checked={tampilkanIdentitas} onChange={(e) => setTampilkanIdentitas(e.target.checked)} />
             Tampilkan sekolah dan nama lengkap (opsional)
@@ -145,9 +159,10 @@ export function KirimForm() {
             </>
           )}
 
+          {!BACKEND_SIAP && <div className="warn">{PESAN_BELUM_TERSAMBUNG}</div>}
           <div className="err">{err}</div>
           <button type="button" className="btn btn-ghost" onClick={() => setLangkah(2)}>Kembali</button>{' '}
-          <button type="button" className="btn" onClick={kirim} disabled={pending}>
+          <button type="button" className="btn" onClick={kirim} disabled={pending || !BACKEND_SIAP}>
             {pending ? 'Mengirim…' : 'Kirim karya'}
           </button>
         </section>

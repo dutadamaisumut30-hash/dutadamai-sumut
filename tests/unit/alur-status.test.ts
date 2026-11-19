@@ -1,18 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { pindahStatus } from '@/fitur/tulisan/alur-status';
 
-describe('alur status tulisan', () => {
+describe('alur status tulisan (lima status tetap)', () => {
   it('maju satu langkah oleh peran yang berwenang', () => {
     expect(pindahStatus({ dari: 'draf', ke: 'menunggu_desain', peran: 'blogger' })).toEqual({ ok: true });
     expect(pindahStatus({ dari: 'menunggu_desain', ke: 'didesain', peran: 'dkv' })).toEqual({ ok: true });
   });
   it('tidak boleh melompati status', () => {
-    const hasil = pindahStatus({ dari: 'draf', ke: 'terbit', peran: 'admin' });
-    expect(hasil.ok).toBe(false);
+    expect(pindahStatus({ dari: 'draf', ke: 'terbit', peran: 'admin' }).ok).toBe(false);
+    expect(pindahStatus({ dari: 'draf', ke: 'didesain', peran: 'admin' }).ok).toBe(false);
   });
   it('Blogger tidak boleh menerbitkan', () => {
-    const hasil = pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'blogger' });
-    expect(hasil.ok).toBe(false);
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'blogger' }).ok).toBe(false);
+  });
+  it('Editor menerbitkan langsung dari review akhir', () => {
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terbit', peran: 'editor' })).toEqual({ ok: true });
   });
   it('mundur dari review wajib catatan dan hanya untuk Editor atau Admin', () => {
     expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor' }).ok).toBe(false);
@@ -20,9 +22,15 @@ describe('alur status tulisan', () => {
     expect(pindahStatus({ dari: 'review_akhir', ke: 'didesain', peran: 'editor', catatan: 'Kutipan belum jelas' })).toEqual({ ok: true });
     expect(pindahStatus({ dari: 'review_akhir', ke: 'draf', peran: 'dkv', catatan: 'x' }).ok).toBe(false);
   });
-  it('terjadwal dan terbit hanya dari review oleh Editor', () => {
-    expect(pindahStatus({ dari: 'review_akhir', ke: 'terjadwal', peran: 'editor' })).toEqual({ ok: true });
-    expect(pindahStatus({ dari: 'terjadwal', ke: 'terbit', peran: 'editor' })).toEqual({ ok: true });
-    expect(pindahStatus({ dari: 'terjadwal', ke: 'terbit', peran: 'blogger' }).ok).toBe(false);
+  it('mundur dari status selain review ditolak dengan alasan yang benar', () => {
+    const hasil = pindahStatus({ dari: 'menunggu_desain', ke: 'draf', peran: 'editor', catatan: 'x' });
+    expect(hasil.ok).toBe(false);
+    if (!hasil.ok) expect(hasil.alasan).toContain('hanya bisa mundur dari Review akhir');
+    const dariTerbit = pindahStatus({ dari: 'terbit', ke: 'review_akhir', peran: 'admin', catatan: 'x' });
+    expect(dariTerbit.ok).toBe(false);
+  });
+  it('status terjadwal dan arsip tidak ada (tidak diputuskan tim)', () => {
+    expect(pindahStatus({ dari: 'review_akhir', ke: 'terjadwal' as never, peran: 'editor' }).ok).toBe(false);
+    expect(pindahStatus({ dari: 'terbit', ke: 'arsip' as never, peran: 'editor' }).ok).toBe(false);
   });
 });

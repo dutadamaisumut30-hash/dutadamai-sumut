@@ -143,3 +143,7 @@ th { color: var(--muted); }
   .menu-desktop, .hide-m { display: none; }
   .menu-mobile { display: block; }
 }
+
+/* Tautan "Lewati ke isi": tersembunyi sampai difokus lewat keyboard. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.sr-only:focus { position: fixed; top: 8px; left: 8px; width: auto; height: auto; padding: 8px 14px; margin: 0; overflow: visible; clip: auto; white-space: normal; background: var(--bg); color: var(--ink); border: 2px solid var(--accent); border-radius: 999px; z-index: 20; }

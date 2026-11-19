@@ -23,8 +23,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
-      # TODO: setelah pnpm-lock.yaml dibuat dan di-commit, ganti menjadi --frozen-lockfile.
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - run: pnpm typecheck
       - run: pnpm test

@@ -12,6 +12,7 @@ export const AKSI = [
   'unggah_desain',
   'seleksi_karya',
   'moderasi',
+  'baca_kotak_saran',
   'terbitkan',
   'ubah_status_review',
   'kelola_rubrik',
@@ -31,6 +32,8 @@ const MATRIKS: Record<Aksi, Record<Peran, boolean>> = {
   unggah_desain: { publik: false, blogger: false, dkv: true, editor: true, admin: true },
   seleksi_karya: HANYA_TIM_EDITOR,
   moderasi: HANYA_TIM_EDITOR,
+  // Rancangan halaman 2: "Memoderasi komentar, membaca kotak saran" hanya Editor dan Admin.
+  baca_kotak_saran: HANYA_TIM_EDITOR,
   terbitkan: HANYA_TIM_EDITOR,
   ubah_status_review: HANYA_TIM_EDITOR,
   // ADR 001: rubrik dikelola Editor dan Admin. Blogger hanya memilih rubrik untuk draf sendiri (lewat tulis_draf).

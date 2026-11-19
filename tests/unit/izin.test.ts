@@ -20,6 +20,12 @@ describe('matriks izin (rancangan halaman 2)', () => {
     expect(bolehAksi('editor', 'kelola_tim')).toBe(false);
     expect(bolehAksi('admin', 'kelola_tim')).toBe(true);
   });
+  it('kotak saran hanya dibaca Editor dan Admin (rancangan halaman 2)', () => {
+    expect(bolehAksi('blogger', 'baca_kotak_saran')).toBe(false);
+    expect(bolehAksi('dkv', 'baca_kotak_saran')).toBe(false);
+    expect(bolehAksi('editor', 'baca_kotak_saran')).toBe(true);
+    expect(bolehAksi('admin', 'baca_kotak_saran')).toBe(true);
+  });
   it('rubrik hanya dikelola Editor dan Admin (ADR 001)', () => {
     expect(bolehAksi('blogger', 'kelola_rubrik')).toBe(false);
     expect(bolehAksi('editor', 'kelola_rubrik')).toBe(true);
