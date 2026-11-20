@@ -41,6 +41,8 @@ export const tulisan = pgTable('tulisan', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: text('slug').notNull().unique(),
   judul: text('judul').notNull(),
+  /** Isi tulisan dalam paragraf, dipisah baris kosong. */
+  isi: text('isi').notNull().default(''),
   rubrikSlug: text('rubrik_slug').notNull().references(() => rubrik.slug),
   status: statusTulisanEnum('status').notNull().default('draf'),
   penanggung: text('penanggung').array().notNull().default(sql`'{}'`),
@@ -99,6 +101,18 @@ export const logAudit = pgTable('log_audit', {
   catatan: text('catatan'),
   pada: timestamp('pada', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Berkas desain yang diunggah DKV (kartu, cover) untuk tulisan. Isi berkas disimpan di folder penyimpanan, bukan di database. */
+export const berkas = pgTable('berkas', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tulisanId: uuid('tulisan_id').references(() => tulisan.id, { onDelete: 'cascade' }),
+  namaAsli: text('nama_asli').notNull(),
+  jenisMime: text('jenis_mime').notNull(),
+  ukuran: integer('ukuran').notNull(),
+  lokasi: text('lokasi').notNull().unique(),
+  diunggahOleh: text('diunggah_oleh').notNull(),
+  pada: timestamp('pada', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('berkas_tulisan_idx').on(t.tulisanId)]);
 
 // Tabel Better Auth (login, sesi, 2FA). Dibuat dengan @better-auth/cli, jangan diedit tangan.
 export * from './auth';

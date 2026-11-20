@@ -5,6 +5,7 @@ import { dbTunggal } from '@/lib/db/tunggal';
 import { kunciDariEnv } from '@/lib/kripto-kontak';
 import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
 import { cekTurnstile } from '@/lib/turnstile';
+import { ambilIp, izinkan, kunciIp } from '@/lib/batas-laju';
 import { layananKirimSaran, type HasilSaran } from './layanan';
 
 export type { HasilSaran };
@@ -16,7 +17,12 @@ export async function kirimSaran(input: unknown, turnstile = ''): Promise<HasilS
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!url || !kunciRaw || !secret) return { ok: false, pesan: 'Server belum dikonfigurasi. Hubungi tim IT.' };
 
-  return layananKirimSaran(input, { turnstile }, {
+  const ip = await ambilIp();
+  if (!izinkan(kunciIp(ip, 'kirim_saran'), 10, 10 * 60_000)) {
+    return { ok: false, pesan: 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.' };
+  }
+
+  return layananKirimSaran(input, { turnstile, ip }, {
     db: dbTunggal(url),
     kunci: kunciDariEnv(kunciRaw),
     secretTurnstile: secret,

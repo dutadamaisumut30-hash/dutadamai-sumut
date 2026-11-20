@@ -131,9 +131,20 @@ th { color: var(--muted); }
 .y { color: var(--accent); font-weight: 800; }
 .n { color: var(--muted); }
 
-.site-footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--muted); font-size: 14px; margin-top: 48px; }
-.fcols { display: flex; gap: 36px; flex-wrap: wrap; justify-content: space-between; }
-.fcols a { color: inherit; }
+/* Footer */
+.site-footer { margin-top: 64px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 14px; }
+.site-footer a { color: var(--muted); text-decoration: none; }
+.site-footer a:hover, .site-footer a:focus-visible { color: var(--ink); }
+.site-footer .fkisi { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 40px; padding-top: 48px; padding-bottom: 32px; }
+.site-footer .fmerek { display: grid; gap: 16px; align-content: start; }
+.site-footer .flogo { height: 40px; width: auto; }
+.site-footer .fmerek p { margin: 0; max-width: 340px; line-height: 1.7; }
+.site-footer .fjudul { margin: 0 0 14px; color: var(--ink); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.site-footer .flist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.site-footer .fbawah { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 20px; padding-bottom: 24px; border-top: 1px solid var(--line); font-size: 13px; }
+.site-footer .fbawah nav { display: flex; gap: 20px; }
+@media (max-width: 860px) { .site-footer .fkisi { grid-template-columns: repeat(2, minmax(0, 1fr)); } .site-footer .fmerek { grid-column: 1 / -1; } }
+@media (max-width: 480px) { .site-footer .fkisi { grid-template-columns: 1fr; gap: 28px; } }
 .fcols ul { list-style: none; padding: 0; margin: 0; }
 
 @media (min-width: 861px) and (max-width: 1100px) {
@@ -160,3 +171,10 @@ th { color: var(--muted); }
   .brand { font-size: 15px; }
   .ico { padding: 8px 10px; }
 }
+
+/* Halaman akun dan masuk: dipusatkan di tengah layar */
+.halaman-tengah { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; text-align: center; }
+.halaman-tengah > * { width: 100%; max-width: 560px; }
+.halaman-tengah .card { text-align: left; }
+
+.isi-tulisan p { margin: 0 0 16px; line-height: 1.8; }

@@ -28,7 +28,15 @@ const auth = buatAuth({
   izinDaftar: true,
 });
 
-await auth.api.signUpEmail({ body: { email, password: sandi, name: nama } });
-await db.update(schema.user).set({ peran }).where(eq(schema.user.email, email));
-console.log(`Akun ${email} dibuat dengan peran ${peran}.`);
-process.exit(0);
+const jalankan = async () => {
+  await auth.api.signUpEmail({ body: { email, password: sandi, name: nama } });
+  await db.update(schema.user).set({ peran }).where(eq(schema.user.email, email));
+  console.log(`Akun ${email} dibuat dengan peran ${peran}.`);
+};
+
+jalankan()
+  .then(() => process.exit(0))
+  .catch((err: unknown) => {
+    console.error('Gagal membuat akun:', err instanceof Error ? err.message : err);
+    process.exit(1);
+  });

@@ -4,7 +4,7 @@ export const metadata = { title: 'Masuk tim', robots: { index: false, follow: fa
 
 export default function HalamanMasuk() {
   return (
-    <main className="wrap" style={{ paddingTop: 32, paddingBottom: 48 }}>
+    <main className="halaman-tengah">
       <div className="kicker">Ruang tim</div>
       <h1>Masuk</h1>
       <p className="muted">Khusus anggota tim redaksi. Akun dibuat oleh Admin.</p>

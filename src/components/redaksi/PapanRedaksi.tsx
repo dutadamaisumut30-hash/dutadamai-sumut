@@ -1,108 +1,71 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { pindahStatus, STATUS_TULISAN, type StatusTulisan } from '@/fitur/tulisan/alur-status';
+import { useState, useTransition } from 'react';
+import { STATUS_TULISAN, type StatusTulisan } from '@/fitur/tulisan/alur-status';
+import { gantiStatus } from '@/fitur/tulisan/actions';
+import type { ItemPapanDb } from '@/fitur/tulisan/layanan';
 import { adalahMundur, formatTanggalPendek, KOLOM, labelTelat } from '@/fitur/tulisan/papan';
-import { bolehAksi, PERAN, type Peran } from '@/lib/izin';
-import { ITEM_PAPAN_CONTOH, type ItemPapan } from '@/lib/papan-contoh';
-
-// Pratinjau memakai tanggal tetap. Nanti diganti jam dari server.
-const HARI_INI = '2026-11-19';
-
-const NAMA_PERAN: Record<Exclude<Peran, 'publik'>, string> = {
-  blogger: 'Blogger',
-  dkv: 'DKV',
-  editor: 'Editor',
-  admin: 'Admin',
-};
 
 type MundurTertunda = { id: string; ke: StatusTulisan } | null;
 
-export function PapanRedaksi() {
-  const [items, setItems] = useState<ItemPapan[]>(ITEM_PAPAN_CONTOH);
-  const [peran, setPeran] = useState<Exclude<Peran, 'publik'>>('editor');
+export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: string }) {
+  const [items, setItems] = useState<ItemPapanDb[]>(awal);
   const [pesan, setPesan] = useState('');
   const [seret, setSeret] = useState<string | null>(null);
   const [sasaran, setSasaran] = useState<StatusTulisan | null>(null);
   const [mundur, setMundur] = useState<MundurTertunda>(null);
   const [catatan, setCatatan] = useState('');
+  const [sibuk, startTransition] = useTransition();
 
-  function cariItem(id: string): ItemPapan | undefined {
+  function cariItem(id: string): ItemPapanDb | undefined {
     return items.find((i) => i.id === id);
+  }
+
+  function kirim(id: string, ke: StatusTulisan, catatanMundur?: string) {
+    const item = cariItem(id);
+    if (!item) return;
+    startTransition(async () => {
+      const hasil = await gantiStatus(id, ke, catatanMundur);
+      if (!hasil.ok) {
+        setPesan(hasil.pesan);
+        return;
+      }
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: ke } : i)));
+      setPesan(
+        catatanMundur !== undefined
+          ? `"${item.judul}" dikembalikan ke ${KOLOM[ke].judul}.`
+          : `"${item.judul}" pindah ke ${KOLOM[ke].judul}.`,
+      );
+      setMundur(null);
+      setCatatan('');
+    });
   }
 
   function pindahkan(id: string, ke: StatusTulisan) {
     const item = cariItem(id);
     if (!item || item.status === ke) return;
-
     if (adalahMundur(item.status, ke)) {
-      if (item.status !== 'review_akhir') {
-        setPesan('Tulisan hanya bisa mundur dari Review akhir.');
-        return;
-      }
-      if (!bolehAksi(peran, 'ubah_status_review')) {
-        setPesan('Hanya Editor dan Admin yang boleh mengembalikan tulisan dari review.');
-        return;
-      }
       setMundur({ id, ke });
       setCatatan('');
       setPesan('');
       return;
     }
-
-    const hasil = pindahStatus({ dari: item.status, ke, peran });
-    if (!hasil.ok) {
-      setPesan(hasil.alasan);
-      return;
-    }
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: ke } : i)));
-    setPesan(`"${item.judul}" pindah ke ${KOLOM[ke].judul}.`);
+    kirim(id, ke);
   }
 
   function kembalikanDenganCatatan() {
     if (!mundur) return;
-    const item = cariItem(mundur.id);
-    if (!item) return;
-    const hasil = pindahStatus({ dari: item.status, ke: mundur.ke, peran, catatan });
-    if (!hasil.ok) {
-      setPesan(hasil.alasan);
-      return;
-    }
-    setItems((prev) => prev.map((i) => (i.id === mundur.id ? { ...i, status: mundur.ke } : i)));
-    setPesan(`"${item.judul}" dikembalikan ke ${KOLOM[mundur.ke].judul}.`);
-    setMundur(null);
-    setCatatan('');
+    kirim(mundur.id, mundur.ke, catatan.trim());
   }
 
   const terbit = items.filter((i) => i.status === 'terbit').length;
   const sedangDikerjakan = items.length - terbit;
-  const telat = items.filter((i) => i.status !== 'terbit' && labelTelat(i.tenggat, HARI_INI)).length;
+  const telat = items.filter((i) => i.status !== 'terbit' && labelTelat(i.tenggat, hariIni)).length;
   const itemMundur = mundur ? cariItem(mundur.id) : undefined;
 
   return (
     <>
-      <div className="warn">
-        Pratinjau tanpa login. Perpindahan di sini belum tersimpan ke database.
-      </div>
-
-      <div className="papan-tools">
-        <label htmlFor="peran-pratinjau">Lihat sebagai</label>
-        <select
-          id="peran-pratinjau"
-          value={peran}
-          onChange={(e) => {
-            setPeran(e.target.value as Exclude<Peran, 'publik'>);
-            setMundur(null);
-            setPesan('');
-          }}
-        >
-          {PERAN.filter((p): p is Exclude<Peran, 'publik'> => p !== 'publik').map((p) => (
-            <option key={p} value={p}>{NAMA_PERAN[p]}</option>
-          ))}
-        </select>
-      </div>
-
       <div className="papan-ringkas">
         <div className="card pad"><div className="muted">Sedang dikerjakan</div><h2>{sedangDikerjakan}</h2></div>
         <div className="card pad"><div className="muted">Terbit</div><h2>{terbit}</h2></div>
@@ -119,7 +82,7 @@ export function PapanRedaksi() {
           <strong>Kembalikan &quot;{itemMundur.judul}&quot; ke {KOLOM[mundur.ke].judul}</strong>
           <label htmlFor="catatan-mundur">Catatan wajib (misalnya: bagian kutipan belum jelas)</label>
           <textarea id="catatan-mundur" rows={3} value={catatan} onChange={(e) => setCatatan(e.target.value)} />
-          <button type="button" className="btn" onClick={kembalikanDenganCatatan} disabled={!catatan.trim()}>
+          <button type="button" className="btn" onClick={kembalikanDenganCatatan} disabled={!catatan.trim() || sibuk}>
             Kembalikan
           </button>{' '}
           <button type="button" className="btn btn-ghost" onClick={() => setMundur(null)}>Batal</button>
@@ -144,7 +107,7 @@ export function PapanRedaksi() {
             <div className="muted">{KOLOM[k].deskripsi}</div>
 
             {items.filter((i) => i.status === k).map((i) => {
-              const telatLabel = i.status !== 'terbit' ? labelTelat(i.tenggat, HARI_INI) : null;
+              const telatLabel = i.status !== 'terbit' ? labelTelat(i.tenggat, hariIni) : null;
               return (
                 <div
                   key={i.id}
@@ -166,6 +129,7 @@ export function PapanRedaksi() {
                     <select
                       aria-label={`Pindah status ${i.judul}`}
                       value={i.status}
+                      disabled={sibuk}
                       onChange={(e) => pindahkan(i.id, e.target.value as StatusTulisan)}
                     >
                       {STATUS_TULISAN.map((s) => (

@@ -12,6 +12,36 @@ export function KeamananAkun({ email, sudahAktif }: { email: string; sudahAktif:
   const [cadangan, setCadangan] = useState<string[]>([]);
   const [pesan, setPesan] = useState('');
   const [sibuk, setSibuk] = useState(false);
+  const [sandiLama, setSandiLama] = useState('');
+  const [sandiBaru, setSandiBaru] = useState('');
+  const [pesanSandi, setPesanSandi] = useState('');
+  const [sandiCadangan, setSandiCadangan] = useState('');
+  const [kodeCadanganBaru, setKodeCadanganBaru] = useState<string[]>([]);
+  const [pesanCadangan, setPesanCadangan] = useState('');
+
+  async function buatUlangKodeCadangan(e: React.FormEvent) {
+    e.preventDefault();
+    setPesanCadangan('');
+    setSibuk(true);
+    const { data, error } = await authClient.twoFactor.generateBackupCodes({ password: sandiCadangan });
+    setSibuk(false);
+    if (error || !data) return setPesanCadangan('Kata sandi tidak cocok.');
+    setSandiCadangan('');
+    setKodeCadanganBaru(data.backupCodes);
+  }
+
+  async function gantiSandi(e: React.FormEvent) {
+    e.preventDefault();
+    setPesanSandi('');
+    if (sandiBaru.length < 12) return setPesanSandi('Kata sandi baru minimal 12 karakter.');
+    setSibuk(true);
+    const { error } = await authClient.changePassword({ currentPassword: sandiLama, newPassword: sandiBaru, revokeOtherSessions: true });
+    setSibuk(false);
+    if (error) return setPesanSandi('Kata sandi lama salah atau kata sandi baru tidak memenuhi syarat.');
+    setSandiLama('');
+    setSandiBaru('');
+    setPesanSandi('Kata sandi berhasil diganti. Sesi lain sudah dikeluarkan.');
+  }
 
   async function mulai(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +67,7 @@ export function KeamananAkun({ email, sudahAktif }: { email: string; sudahAktif:
   }
 
   return (
+    <>
     <section className="card pad" style={{ maxWidth: 560 }}>
       <p className="muted">Masuk sebagai {email}</p>
       <h2>Autentikasi dua langkah (2FA)</h2>
@@ -70,5 +101,37 @@ export function KeamananAkun({ email, sudahAktif }: { email: string; sudahAktif:
 
       {pesan && <p role="status" style={{ marginTop: 12 }}>{pesan}</p>}
     </section>
+
+    {aktif && (
+      <section className="card pad" style={{ maxWidth: 560, marginTop: 16 }}>
+        <h2>Kode cadangan</h2>
+        <p className="muted">Membuat kode baru akan membatalkan semua kode cadangan lama.</p>
+        <form onSubmit={buatUlangKodeCadangan}>
+          <label htmlFor="sandi-cadangan">Kata sandi</label>
+          <input id="sandi-cadangan" type="password" autoComplete="current-password" value={sandiCadangan} onChange={(e) => setSandiCadangan(e.target.value)} required />
+          <button type="submit" className="btn" disabled={sibuk} style={{ marginTop: 12 }}>Buat kode cadangan baru</button>
+        </form>
+        {pesanCadangan && <p role="alert" style={{ marginTop: 12, color: 'var(--red)' }}>{pesanCadangan}</p>}
+        {kodeCadanganBaru.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <strong>Simpan kode ini sekarang</strong>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{kodeCadanganBaru.join('\n')}</pre>
+          </div>
+        )}
+      </section>
+    )}
+
+    <section className="card pad" style={{ maxWidth: 560, marginTop: 16 }}>
+      <h2>Ganti kata sandi</h2>
+      <form onSubmit={gantiSandi}>
+        <label htmlFor="sandi-lama">Kata sandi lama</label>
+        <input id="sandi-lama" type="password" autoComplete="current-password" value={sandiLama} onChange={(e) => setSandiLama(e.target.value)} required />
+        <label htmlFor="sandi-baru">Kata sandi baru (minimal 12 karakter)</label>
+        <input id="sandi-baru" type="password" autoComplete="new-password" value={sandiBaru} onChange={(e) => setSandiBaru(e.target.value)} required />
+        <button type="submit" className="btn" disabled={sibuk} style={{ marginTop: 12 }}>Ganti kata sandi</button>
+      </form>
+      {pesanSandi && <p role="status" style={{ marginTop: 12 }}>{pesanSandi}</p>}
+    </section>
+    </>
   );
 }

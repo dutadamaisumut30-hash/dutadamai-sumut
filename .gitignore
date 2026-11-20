@@ -11,3 +11,6 @@ coverage/
 Thumbs.db
 next-env.d.ts
 *.tsbuildinfo
+
+# Berkas desain yang diunggah (lokal)
+penyimpanan/

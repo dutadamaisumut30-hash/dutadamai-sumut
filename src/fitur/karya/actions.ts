@@ -4,6 +4,7 @@
 import { dbTunggal } from '@/lib/db/tunggal';
 import { kunciDariEnv } from '@/lib/kripto-kontak';
 import { buatKodeLacak } from '@/lib/kode-lacak';
+import { ambilIp, izinkan, kunciIp } from '@/lib/batas-laju';
 import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
 import { cekTurnstile } from '@/lib/turnstile';
 import { layananKirimKarya, type HasilKirim } from './layanan';
@@ -20,7 +21,12 @@ export async function kirimKarya(input: unknown, turnstile = ''): Promise<HasilK
     return { ok: false, pesan: 'Server belum dikonfigurasi. Hubungi tim IT.' };
   }
 
-  return layananKirimKarya(input, { turnstile }, {
+  const ip = await ambilIp();
+  if (!izinkan(kunciIp(ip, 'kirim_karya'), 5, 10 * 60_000)) {
+    return { ok: false, pesan: 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.' };
+  }
+
+  return layananKirimKarya(input, { turnstile, ip }, {
     db: dbTunggal(url),
     kunci: kunciDariEnv(kunciRaw),
     secretTurnstile: secret,

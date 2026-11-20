@@ -1,10 +1,12 @@
+import { wajibAksi } from '@/lib/sesi';
 import Link from 'next/link';
 import { KelolaRubrik } from '@/components/redaksi/KelolaRubrik';
 import '../papan.css';
 
 export const metadata = { title: 'Kelola rubrik · Redaksi', robots: { index: false, follow: false } };
 
-export default function HalamanKelolaRubrik() {
+export default async function HalamanKelolaRubrik() {
+  await wajibAksi('kelola_rubrik');
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · rubrik</div>

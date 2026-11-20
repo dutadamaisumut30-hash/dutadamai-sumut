@@ -1,10 +1,12 @@
+import { wajibAksi } from '@/lib/sesi';
 import Link from 'next/link';
 import { ModerasiSaran } from '@/components/redaksi/ModerasiSaran';
 import '../papan.css';
 
 export const metadata = { title: 'Kotak saran · Redaksi', robots: { index: false, follow: false } };
 
-export default function HalamanKotakSaran() {
+export default async function HalamanKotakSaran() {
+  await wajibAksi('baca_kotak_saran');
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · moderasi</div>

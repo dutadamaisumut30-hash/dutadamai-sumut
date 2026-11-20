@@ -1,0 +1,1 @@
+ALTER TABLE "tulisan" ADD COLUMN "isi" text DEFAULT '' NOT NULL;

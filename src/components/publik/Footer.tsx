@@ -1,37 +1,65 @@
 import Link from 'next/link';
 
+const RUBRIK = [
+  { href: '/rubrik/cerita-sumut', label: 'Cerita Sumut' },
+  { href: '/rubrik/opini-pelajar', label: 'Opini Pelajar' },
+  { href: '/rubrik/profil-duta', label: 'Profil Duta' },
+  { href: '/rubrik/tips-skill', label: 'Tips Skill' },
+  { href: '/rubrik/di-balik-layar', label: 'Di Balik Layar' },
+];
+
+const WEBSITE = [
+  { href: '/tentang', label: 'Tentang' },
+  { href: '/tim', label: 'Tim' },
+  { href: '/karya', label: 'Karya Pelajar' },
+  { href: '/kirim-karya', label: 'Kirim Karya' },
+];
+
+const BANTUAN = [
+  { href: '/kotak-saran', label: 'Kotak Saran' },
+  { href: '/pedoman-komentar', label: 'Pedoman komentar' },
+  { href: '/kebijakan-privasi', label: 'Kebijakan privasi' },
+  { href: '/lapor', label: 'Lapor konten' },
+  { href: '/kontak', label: 'Kontak' },
+];
+
+function Kolom({ judul, items }: { judul: string; items: { href: string; label: string }[] }) {
+  return (
+    <div>
+      <p className="fjudul">{judul}</p>
+      <ul className="flist">
+        {items.map((item) => (
+          <li key={item.href}>
+            <Link href={item.href}>{item.label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="site-footer">
-      <div className="wrap fcols">
-        <div style={{ maxWidth: 300 }}>
-          DutaDamai Sumut adalah portal berita Duta Damai Sumatera Utara: kabar baik dan karya anak muda Sumut, dari gerakan melawan radikalisme dan terorisme lewat konten positif.
+      <div className="wrap fkisi">
+        <div className="fmerek">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo/logo-dutadamai-sumut.png" alt="DutaDamai Sumut" width={128} height={55} className="flogo" />
+          <p>
+            DutaDamai Sumut adalah portal berita Duta Damai Sumatera Utara: kabar baik dan karya anak muda Sumut, dari gerakan melawan radikalisme dan terorisme lewat konten positif.
+          </p>
         </div>
-        <ul>
-          <li><strong>Rubrik</strong></li>
-          <li><Link href="/rubrik/cerita-sumut">Cerita Sumut</Link></li>
-          <li><Link href="/rubrik/opini-pelajar">Opini Pelajar</Link></li>
-          <li><Link href="/rubrik/profil-duta">Profil Duta</Link></li>
-          <li><Link href="/rubrik/tips-skill">Tips Skill</Link></li>
-          <li><Link href="/rubrik/di-balik-layar">Di Balik Layar</Link></li>
-        </ul>
-        <ul>
-          <li><strong>Website</strong></li>
-          <li><Link href="/tentang">Tentang</Link></li>
-          <li><Link href="/tim">Tim</Link></li>
-          <li><Link href="/karya">Karya Pelajar</Link></li>
-          <li><Link href="/kirim-karya">Kirim Karya</Link></li>
-        </ul>
-        <ul>
-          <li><strong>Bantuan</strong></li>
-          <li><Link href="/kotak-saran">Kotak Saran</Link></li>
-          <li><Link href="/pedoman-komentar">Pedoman komentar</Link></li>
-          <li><Link href="/kebijakan-privasi">Kebijakan privasi</Link></li>
-          <li><Link href="/lapor">Lapor konten</Link></li>
-          <li><Link href="/kontak">Kontak</Link></li>
-        </ul>
+        <Kolom judul="Rubrik" items={RUBRIK} />
+        <Kolom judul="Website" items={WEBSITE} />
+        <Kolom judul="Bantuan" items={BANTUAN} />
       </div>
-      <div className="wrap" style={{ marginTop: 18 }}>© 2026 Duta Damai Sumatera Utara</div>
+      <div className="wrap fbawah">
+        <p>© 2026 Duta Damai Sumatera Utara</p>
+        <nav aria-label="Tautan hukum">
+          <Link href="/kebijakan-privasi">Kebijakan privasi</Link>
+          <Link href="/kontak">Kontak</Link>
+        </nav>
+      </div>
     </footer>
   );
 }

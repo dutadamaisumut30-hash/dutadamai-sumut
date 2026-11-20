@@ -3,7 +3,7 @@ import * as schema from '@/lib/db/schema';
 import { buatDb } from '@/lib/db';
 import { buatAuth } from '@/lib/auth/konfigurasi';
 
-const url = process.env.DATABASE_URL ?? 'postgres://dutadamai:dutadamai@localhost:5433/dutadamai';
+const url = process.env.DATABASE_URL ?? 'postgres://dutadamai:dutadamai@localhost:5432/dutadamai';
 
 const secret = process.env.BETTER_AUTH_SECRET;
 if (!secret && process.env.NODE_ENV === 'production') {

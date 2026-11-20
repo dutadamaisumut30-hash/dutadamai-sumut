@@ -4,6 +4,7 @@ import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { saran } from '@/lib/db/schema';
 import { enkripsiKontak } from '@/lib/kripto-kontak';
 import type { CekTurnstile } from '@/lib/turnstile';
+import { catatAudit } from '@/lib/audit';
 
 export const skemaSaran = z.object({
   kategori: z.enum(['Saran konten', 'Masalah teknis', 'Ide kolaborasi']),
@@ -43,5 +44,6 @@ export async function layananKirimSaran(
   } catch {
     return { ok: false, pesan: 'Masukanmu belum tersimpan. Coba lagi beberapa saat lagi.' };
   }
+  await catatAudit(deps.db, { peran: 'publik', aksi: 'kirim_saran', objek: 'saran', catatan: data.kategori });
   return { ok: true };
 }

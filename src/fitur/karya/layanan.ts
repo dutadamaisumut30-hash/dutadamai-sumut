@@ -4,6 +4,7 @@ import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { karya } from '@/lib/db/schema';
 import { enkripsiKontak } from '@/lib/kripto-kontak';
 import { skemaKirimKarya } from './kirim';
+import { catatAudit } from '@/lib/audit';
 
 export type HasilKirim = { ok: true; kode: string } | { ok: false; pesan: string };
 
@@ -53,5 +54,6 @@ export async function layananKirimKarya(
   } catch {
     return { ok: false, pesan: 'Karyamu belum tersimpan. Coba lagi beberapa saat lagi.' };
   }
+  await catatAudit(deps.db, { peran: 'publik', aksi: 'kirim_karya', objek: 'karya', objekId: kode });
   return { ok: true, kode };
 }
