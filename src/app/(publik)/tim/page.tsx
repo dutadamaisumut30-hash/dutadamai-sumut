@@ -1,10 +1,15 @@
-import { TIM_CONTOH, DIVISI_AWAL, kelompokkanPublik } from '@/fitur/tim/tim';
+import { DIVISI_AWAL, kelompokkanPublik } from '@/fitur/tim/tim';
+import { ambilAnggotaTampil } from '@/fitur/tim/layanan';
+import { dbTunggal } from '@/lib/db/tunggal';
+import { urlDbWajib } from '@/lib/db/url';
 
 export const metadata = { title: 'Tim' };
+export const dynamic = 'force-dynamic';
 
 // Daftar tampil diatur di menu Akun tim (admin). Konfirmasi nama sebelum rilis.
-export default function HalamanTim() {
-  const kelompok = kelompokkanPublik(TIM_CONTOH, DIVISI_AWAL);
+export default async function HalamanTim() {
+  const anggota = await ambilAnggotaTampil(dbTunggal(urlDbWajib()));
+  const kelompok = kelompokkanPublik(anggota, DIVISI_AWAL);
   return (
     <section>
       <div className="kicker">Di balik website</div>

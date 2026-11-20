@@ -1,18 +1,19 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { RUBRIK, cariRubrik, tulisanPerRubrik } from '@/lib/data-contoh';
+import { ambilRubrik } from '@/fitur/rubrik/layanan';
+import { tulisanPerRubrik } from '@/lib/data-contoh';
+import { dbTunggal } from '@/lib/db/tunggal';
+import { urlDbWajib } from '@/lib/db/url';
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return RUBRIK.map((r) => ({ slug: r.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function HalamanRubrik({ params }: Props) {
   const { slug } = await params;
-  const rubrik = cariRubrik(slug);
+  const rubrik = (await ambilRubrik(dbTunggal(urlDbWajib()))).find((r) => r.slug === slug);
   if (!rubrik) notFound();
-  const daftar = tulisanPerRubrik(rubrik.nama);
+  const daftar = tulisanPerRubrik(rubrik.nama as Parameters<typeof tulisanPerRubrik>[0]);
 
   return (
     <section>
