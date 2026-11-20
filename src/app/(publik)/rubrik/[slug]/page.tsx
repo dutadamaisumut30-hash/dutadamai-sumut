@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ambilRubrik } from '@/fitur/rubrik/layanan';
-import { tulisanPerRubrik } from '@/lib/data-contoh';
+import { ambilTulisanTerbit } from '@/fitur/publik/layanan';
 import { dbTunggal } from '@/lib/db/tunggal';
 import { urlDbWajib } from '@/lib/db/url';
 
@@ -11,9 +11,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function HalamanRubrik({ params }: Props) {
   const { slug } = await params;
-  const rubrik = (await ambilRubrik(dbTunggal(urlDbWajib()))).find((r) => r.slug === slug);
+  const db = dbTunggal(urlDbWajib());
+  const rubrik = (await ambilRubrik(db)).find((r) => r.slug === slug);
   if (!rubrik) notFound();
-  const daftar = tulisanPerRubrik(rubrik.nama as Parameters<typeof tulisanPerRubrik>[0]);
+  const daftar = await ambilTulisanTerbit(db, slug);
 
   return (
     <section>
