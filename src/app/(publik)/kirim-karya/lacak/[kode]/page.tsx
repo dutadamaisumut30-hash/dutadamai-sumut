@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
-import { daftarLangkah } from '@/fitur/karya/alur-seleksi';
+import { ambilStatusLacak } from '@/fitur/karya/lacak';
+import { progresKarya } from '@/fitur/karya/alur-seleksi';
+import { dbTunggal } from '@/lib/db/tunggal';
 import { kodeLacakValid } from '@/lib/kode-lacak';
 import { BACKEND_SIAP } from '@/lib/status-sistem';
 
@@ -10,20 +12,27 @@ export default async function Lacak({ params }: Props) {
   if (!kodeLacakValid(mentah)) notFound();
   const kode = mentah.toUpperCase();
 
-  // TODO(database): ambil tahap karya dari tabel `karya` berdasarkan kode, lalu pakai progresKarya(tahap).
-  // Sampai itu, halaman tidak menandai langkah apa pun sebagai selesai: tidak ada data yang bisa dipercaya.
+  if (!BACKEND_SIAP || !process.env.DATABASE_URL) {
+    return (
+      <section className="narrow">
+        <h1>Lacak karya</h1>
+        <p className="muted">Kode lacakmu: <strong>{kode}</strong></p>
+        <div className="warn">Pelacakan belum tersambung ke server, jadi kode ini belum bisa dicek.</div>
+      </section>
+    );
+  }
+
+  const status = await ambilStatusLacak(dbTunggal(process.env.DATABASE_URL), kode);
+  if (!status) notFound();
+
   return (
     <section className="narrow">
       <h1>Lacak karya</h1>
       <p className="muted">Kode lacakmu: <strong>{kode}</strong></p>
-      {BACKEND_SIAP ? (
-        <p className="muted">Tahap terkini akan tampil di sini setelah pelacakan tersambung.</p>
-      ) : (
-        <div className="warn">Pelacakan belum tersambung ke server, jadi kode ini belum bisa dicek. Karyamu belum tersimpan sampai layanan ini aktif.</div>
-      )}
+      <p><b>{status.judul}</b> · {status.jenis}</p>
       <ol className="track">
-        {daftarLangkah().map((l) => (
-          <li key={l.id}>
+        {progresKarya(status.tahap).map((l) => (
+          <li key={l.id} className={l.status}>
             <b>{l.id}. {l.label}</b>
           </li>
         ))}

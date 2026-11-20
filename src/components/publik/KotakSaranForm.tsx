@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { kirimSaran } from '@/fitur/saran/actions';
 import { BACKEND_SIAP } from '@/lib/status-sistem';
+import { Turnstile } from './Turnstile';
 
 const KATEGORI = ['Saran konten', 'Masalah teknis', 'Ide kolaborasi'] as const;
 
-// TODO(database): simpan ke tabel `saran` dengan kontak terenkripsi (ADR 005) dan batas laju.
 // Selama BACKEND_SIAP false, tombol dinonaktifkan agar tidak ada pesan yang hilang diam-diam.
 export function KotakSaranForm() {
   const [kategori, setKategori] = useState<(typeof KATEGORI)[number]>('Saran konten');
@@ -14,6 +15,9 @@ export function KotakSaranForm() {
   const [err, setErr] = useState('');
   const [terkirim, setTerkirim] = useState(false);
 
+  const [turnstile, setTurnstile] = useState('');
+  const [pending, startTransition] = useTransition();
+
   function kirim() {
     if (!BACKEND_SIAP) {
       setErr('Kotak saran belum tersambung ke server. Pesanmu belum terkirim.');
@@ -21,9 +25,13 @@ export function KotakSaranForm() {
     }
     if (!pesan.trim()) return setErr('Pesan wajib diisi.');
     setErr('');
-    setTerkirim(true);
-    setPesan('');
-    setKontak('');
+    startTransition(async () => {
+      const hasil = await kirimSaran({ kategori, pesan, kontak }, turnstile);
+      if (!hasil.ok) return setErr(hasil.pesan);
+      setTerkirim(true);
+      setPesan('');
+      setKontak('');
+    });
   }
 
   if (terkirim) {
@@ -45,8 +53,11 @@ export function KotakSaranForm() {
       <textarea id="pesan" rows={5} value={pesan} onChange={(e) => setPesan(e.target.value)} placeholder="Tulis saranmu di sini" />
       <label htmlFor="kontak">Email atau WhatsApp (opsional, kalau mau dibalas)</label>
       <input id="kontak" value={kontak} onChange={(e) => setKontak(e.target.value)} />
+      <Turnstile onToken={setTurnstile} />
       <div className="err">{err}</div>
-      <button type="button" className="btn" onClick={kirim} disabled={!BACKEND_SIAP}>Kirim saran</button>
+      <button type="button" className="btn" onClick={kirim} disabled={pending || !BACKEND_SIAP || !turnstile}>
+        {pending ? 'Mengirim…' : 'Kirim saran'}
+      </button>
     </>
   );
 }

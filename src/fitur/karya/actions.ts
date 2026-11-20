@@ -1,7 +1,7 @@
 'use server';
 
 // Server action kirim karya. Hanya aktif jika BACKEND_SIAP true (setelah database, Turnstile, dan batas laju diuji).
-import { buatDb } from '@/lib/db';
+import { dbTunggal } from '@/lib/db/tunggal';
 import { kunciDariEnv } from '@/lib/kripto-kontak';
 import { buatKodeLacak } from '@/lib/kode-lacak';
 import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
@@ -9,8 +9,6 @@ import { cekTurnstile } from '@/lib/turnstile';
 import { layananKirimKarya, type HasilKirim } from './layanan';
 
 export type { HasilKirim };
-
-let dbTunggal: ReturnType<typeof buatDb> | null = null;
 
 export async function kirimKarya(input: unknown, turnstile = ''): Promise<HasilKirim> {
   if (!BACKEND_SIAP) return { ok: false, pesan: PESAN_BELUM_TERSAMBUNG };
@@ -22,9 +20,8 @@ export async function kirimKarya(input: unknown, turnstile = ''): Promise<HasilK
     return { ok: false, pesan: 'Server belum dikonfigurasi. Hubungi tim IT.' };
   }
 
-  dbTunggal ??= buatDb(url);
   return layananKirimKarya(input, { turnstile }, {
-    db: dbTunggal,
+    db: dbTunggal(url),
     kunci: kunciDariEnv(kunciRaw),
     secretTurnstile: secret,
     cekTurnstile,

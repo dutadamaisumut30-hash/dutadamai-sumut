@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react';
 import { kirimKarya } from '@/fitur/karya/actions';
 import { pesanBerkasTerlaluBesar } from '@/fitur/karya/kirim';
 import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
+import { Turnstile } from './Turnstile';
 
 type Jenis = 'tulisan' | 'desain';
 type BerkasInfo = { nama: string; tipe: string; ukuranByte: number };
@@ -26,6 +27,7 @@ export function KirimForm() {
   const [sekolah, setSekolah] = useState('');
   const [namaLengkap, setNamaLengkap] = useState('');
   const [err, setErr] = useState('');
+  const [turnstile, setTurnstile] = useState('');
   const [pending, startTransition] = useTransition();
 
   function lanjutKe2() {
@@ -59,7 +61,7 @@ export function KirimForm() {
         tampilkanIdentitas,
         sekolah: tampilkanIdentitas ? sekolah : undefined,
         namaLengkap: tampilkanIdentitas ? namaLengkap : undefined,
-      });
+      }, turnstile);
       if (hasil.ok) {
         router.push(`/kirim-karya/lacak/${hasil.kode}`);
       } else {
@@ -160,9 +162,10 @@ export function KirimForm() {
           )}
 
           {!BACKEND_SIAP && <div className="warn">{PESAN_BELUM_TERSAMBUNG}</div>}
+          <Turnstile onToken={setTurnstile} />
           <div className="err">{err}</div>
           <button type="button" className="btn btn-ghost" onClick={() => setLangkah(2)}>Kembali</button>{' '}
-          <button type="button" className="btn" onClick={kirim} disabled={pending || !BACKEND_SIAP}>
+          <button type="button" className="btn" onClick={kirim} disabled={pending || !BACKEND_SIAP || !turnstile}>
             {pending ? 'Mengirim…' : 'Kirim karya'}
           </button>
         </section>

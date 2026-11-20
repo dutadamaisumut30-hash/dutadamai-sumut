@@ -11,12 +11,14 @@ export function buatAuth(opsi: {
   schema: Record<string, unknown>;
   secret: string;
   baseURL: string;
+  /** Pendaftaran publik ditutup. Hanya skrip pembuatan akun pertama yang boleh mengaktifkannya. */
+  izinDaftar?: boolean;
 }) {
   return betterAuth({
     database: drizzleAdapter(opsi.db as never, { provider: 'pg', schema: opsi.schema }),
     secret: opsi.secret,
     baseURL: opsi.baseURL,
-    emailAndPassword: { enabled: true, minPasswordLength: 12 },
+    emailAndPassword: { enabled: true, minPasswordLength: 12, disableSignUp: !opsi.izinDaftar },
     plugins: [twoFactor({ issuer: 'DutaDamai Sumut' })],
     user: {
       additionalFields: {

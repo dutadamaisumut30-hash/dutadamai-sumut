@@ -18,7 +18,13 @@ describe('login Better Auth di PGlite', () => {
       schema: s as unknown as Record<string, unknown>,
       secret: 'tes-rahasia-minimal-32-karakter-aman-0123456789',
       baseURL: 'http://localhost:3000',
+      izinDaftar: true,
     });
+  });
+
+  it('pendaftaran publik ditutup kecuali diizinkan', async () => {
+    const tertutup = buatAuth({ db, schema: s as unknown as Record<string, unknown>, secret: 'tes-rahasia-minimal-32-karakter-aman-0123456789', baseURL: 'http://localhost:3000' });
+    await expect(tertutup.api.signUpEmail({ body: { email: 'luar@duta.test', password: 'kata-sandi-panjang-1', name: 'Luar' } })).rejects.toThrow();
   });
 
   it('mendaftarkan akun dengan kata sandi minimal 12 karakter', async () => {
