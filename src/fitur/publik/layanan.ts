@@ -1,6 +1,6 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
-import { karya, rubrik, tulisan } from '@/lib/db/schema';
+import { berkas, karya, rubrik, tulisan } from '@/lib/db/schema';
 import type { KaryaContoh } from '@/lib/data-contoh';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,13 +79,24 @@ export async function ambilKaryaTerbit(db: Db): Promise<KaryaContoh[]> {
     .select({ id: karya.id, jenis: karya.jenis, judul: karya.judul, oleh: karya.oleh, isi: karya.isi })
     .from(karya)
     .where(eq(karya.tahap, 'terbit'));
+  if (baris.length === 0) return [];
 
-  return baris.map((b: any, i: number) => ({
-    id: b.id,
-    jenis: b.jenis as 'tulisan' | 'desain',
-    judul: b.judul,
-    oleh: b.oleh,
-    kutipan: b.jenis === 'tulisan' && b.isi ? ringkas(paragraf(b.isi)[0] ?? b.isi, 140) : undefined,
-    warna: WARNA[i % WARNA.length],
-  }));
+  const ids = baris.map((b: any) => b.id);
+  const gambar = await db
+    .select({ id: berkas.id, karyaId: berkas.karyaId })
+    .from(berkas)
+    .where(inArray(berkas.karyaId, ids));
+
+  return baris.map((b: any, i: number) => {
+    const g = gambar.find((x: any) => x.karyaId === b.id);
+    return {
+      id: b.id,
+      jenis: b.jenis as 'tulisan' | 'desain',
+      judul: b.judul,
+      oleh: b.oleh,
+      kutipan: b.jenis === 'tulisan' && b.isi ? ringkas(paragraf(b.isi)[0] ?? b.isi, 140) : undefined,
+      gambar: g ? `/api/karya-berkas/${g.id}` : undefined,
+      warna: WARNA[i % WARNA.length],
+    };
+  });
 }

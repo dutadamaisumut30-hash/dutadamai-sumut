@@ -28,6 +28,7 @@ export interface KaryaContoh {
   judul: string;
   oleh: string;
   kutipan?: string;
+  gambar?: string;
   warna: 'ph-warm' | 'ph-blue' | 'ph-rose' | '';
 }
 

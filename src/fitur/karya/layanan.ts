@@ -6,6 +6,7 @@ import { enkripsiKontak } from '@/lib/kripto-kontak';
 import { skemaKirimKarya } from './kirim';
 import { catatAudit } from '@/lib/audit';
 import { validasiBerkas } from '@/fitur/berkas/validasi';
+import { hapusMetadataGambar } from '@/lib/metadata-gambar';
 import { hapusBerkas, simpanBerkas } from '@/lib/penyimpanan';
 
 export const MIME_KARYA = ['image/jpeg', 'image/png'] as const;
@@ -47,7 +48,9 @@ export async function layananKirimKarya(
     if (!opsi.berkas) return { ok: false, pesan: 'Unggah berkas desainmu dulu.' };
     const salah = validasiBerkas({ mime: opsi.berkas.mime, isi: opsi.berkas.isi, mimeIzin: MIME_KARYA, batasByte: BATAS_BERKAS_KARYA });
     if (salah) return { ok: false, pesan: salah };
-    berkasKirim = opsi.berkas;
+    const bersih = hapusMetadataGambar(opsi.berkas.isi, opsi.berkas.mime);
+    if (!bersih) return { ok: false, pesan: 'Isi berkas tidak bisa dibaca. Pastikan gambarnya tidak rusak.' };
+    berkasKirim = { ...opsi.berkas, isi: bersih };
   }
 
   const lolos = await deps.cekTurnstile({ token: opsi.turnstile, secret: deps.secretTurnstile, ip: opsi.ip });

@@ -53,7 +53,16 @@ describe('layanan kirim karya ke database', () => {
   });
 
   it('menyimpan desain beserta berkasnya, dan berkas tersambung ke karya', async () => {
-    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]);
+    const potong = (tipe: string, isi: Buffer) => {
+      const panjang = Buffer.alloc(4);
+      panjang.writeUInt32BE(isi.length);
+      return Buffer.concat([panjang, Buffer.from(tipe, 'ascii'), isi, Buffer.alloc(4)]);
+    };
+    const png = Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      potong('IHDR', Buffer.alloc(13)),
+      potong('IEND', Buffer.alloc(0)),
+    ]);
     const hasil = await layananKirimKarya(
       { ...tulisan, jenis: 'desain', isi: '', judul: 'Poster uji', berkas: { nama: 'a.png', tipe: 'image/png', ukuranByte: png.length } },
       { turnstile: 'token', berkas: { nama: 'a.png', mime: 'image/png', isi: png } },

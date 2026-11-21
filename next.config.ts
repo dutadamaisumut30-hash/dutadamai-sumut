@@ -4,6 +4,10 @@ const config: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   poweredByHeader: false,
+  // Batas bawaan Server Action hanya 1 MB. Berkas desain boleh sampai 10 MB, jadi diberi ruang untuk overhead form.
+  experimental: {
+    serverActions: { bodySizeLimit: '12mb' },
+  },
   async headers() {
     return [
       {
