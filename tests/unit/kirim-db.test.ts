@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
+import { eq } from 'drizzle-orm';
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as s from '@/lib/db/schema';
 import { layananKirimKarya, type DepsKirim } from '@/fitur/karya/layanan';
@@ -51,10 +52,27 @@ describe('layanan kirim karya ke database', () => {
     expect(bundel).toEqual({ kontak: '0812-3456-789', namaLengkap: 'Dimas Pratama', sekolah: 'SMA 1 Binjai' });
   });
 
-  it('menolak desain karena penyimpanan berkas belum ada, dan tidak menyimpan apa pun', async () => {
+  it('menyimpan desain beserta berkasnya, dan berkas tersambung ke karya', async () => {
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]);
+    const hasil = await layananKirimKarya(
+      { ...tulisan, jenis: 'desain', isi: '', judul: 'Poster uji', berkas: { nama: 'a.png', tipe: 'image/png', ukuranByte: png.length } },
+      { turnstile: 'token', berkas: { nama: 'a.png', mime: 'image/png', isi: png } },
+      deps({ simpanFile: async () => 'uji-desain.png' }),
+    );
+    expect(hasil.ok).toBe(true);
+    const [b] = await (db as ReturnType<typeof drizzle<typeof s>>).select().from(s.berkas).where(eq(s.berkas.lokasi, 'uji-desain.png'));
+    expect(b.karyaId).toBeTruthy();
+    expect(b.tulisanId).toBeNull();
+    expect(b.diunggahOleh).toBe('publik');
+  });
+
+  it('menolak desain dengan isi yang bukan PNG atau JPG, tanpa menyimpan apa pun', async () => {
     const sebelum = await jumlah();
-    const hasil = await layananKirimKarya({ ...tulisan, jenis: 'desain', isi: '', berkas: { nama: 'a.png', tipe: 'image/png', ukuranByte: 1000 } },
-      { turnstile: 'token' }, deps());
+    const hasil = await layananKirimKarya(
+      { ...tulisan, jenis: 'desain', isi: '', judul: 'Bukan gambar', berkas: { nama: 'a.png', tipe: 'image/png', ukuranByte: 100 } },
+      { turnstile: 'token', berkas: { nama: 'a.png', mime: 'image/png', isi: Buffer.from('bukan gambar sama sekali') } },
+      deps(),
+    );
     expect(hasil.ok).toBe(false);
     expect(await jumlah()).toBe(sebelum);
   });

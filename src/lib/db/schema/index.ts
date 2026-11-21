@@ -106,13 +106,15 @@ export const logAudit = pgTable('log_audit', {
 export const berkas = pgTable('berkas', {
   id: uuid('id').primaryKey().defaultRandom(),
   tulisanId: uuid('tulisan_id').references(() => tulisan.id, { onDelete: 'cascade' }),
+  /** Berkas desain karya publik. Satu berkas hanya milik tulisan atau karya, tidak keduanya. */
+  karyaId: uuid('karya_id').references(() => karya.id, { onDelete: 'cascade' }),
   namaAsli: text('nama_asli').notNull(),
   jenisMime: text('jenis_mime').notNull(),
   ukuran: integer('ukuran').notNull(),
   lokasi: text('lokasi').notNull().unique(),
   diunggahOleh: text('diunggah_oleh').notNull(),
   pada: timestamp('pada', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('berkas_tulisan_idx').on(t.tulisanId)]);
+}, (t) => [index('berkas_tulisan_idx').on(t.tulisanId), index('berkas_karya_idx').on(t.karyaId)]);
 
 // Tabel Better Auth (login, sesi, 2FA). Dibuat dengan @better-auth/cli, jangan diedit tangan.
 export * from './auth';

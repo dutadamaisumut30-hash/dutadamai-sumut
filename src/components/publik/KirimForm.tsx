@@ -17,6 +17,7 @@ export function KirimForm() {
   const [judul, setJudul] = useState('');
   const [isi, setIsi] = useState('');
   const [berkas, setBerkas] = useState<BerkasInfo | null>(null);
+  const [berkasFile, setBerkasFile] = useState<File | null>(null);
   const [berkasPesan, setBerkasPesan] = useState<string | null>(null);
   const [namaPanggung, setNamaPanggung] = useState('');
   const [kontak, setKontak] = useState('');
@@ -48,7 +49,7 @@ export function KirimForm() {
     }
 
     startTransition(async () => {
-      const hasil = await kirimKarya({
+      const data = {
         jenis,
         judul,
         isi,
@@ -61,7 +62,12 @@ export function KirimForm() {
         tampilkanIdentitas,
         sekolah: tampilkanIdentitas ? sekolah : undefined,
         namaLengkap: tampilkanIdentitas ? namaLengkap : undefined,
-      }, turnstile);
+      };
+      const fd = new FormData();
+      fd.set('data', JSON.stringify(data));
+      if (jenis === 'desain' && berkasFile) fd.set('berkas', berkasFile);
+      fd.set('turnstile', turnstile);
+      const hasil = await kirimKarya(fd);
       if (hasil.ok) {
         router.push(`/kirim-karya/lacak/${hasil.kode}`);
       } else {
@@ -113,11 +119,12 @@ export function KirimForm() {
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   setBerkas(f ? { nama: f.name, tipe: f.type, ukuranByte: f.size } : null);
+                  setBerkasFile(f ?? null);
                   setBerkasPesan(f ? pesanBerkasTerlaluBesar(f.size) : null);
                 }}
               />
               {berkasPesan && <div className="err">{berkasPesan}</div>}
-              <p className="muted">Berkas belum dikirim ke server. Penyimpanan berkas menunggu tahap backend.</p>
+              <p className="muted">Berkas dikirim bersama formulir saat kamu menekan Kirim karya.</p>
             </>
           )}
           <div className="err">{err}</div>

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import path from 'path';
 
@@ -38,4 +38,10 @@ export async function simpanBerkas(isi: Buffer, mime: string): Promise<string> {
 export async function bacaBerkas(lokasi: string): Promise<Buffer> {
   if (!/^[0-9a-f-]{36}\.(png|jpg|pdf)$/.test(lokasi)) throw new Error('Lokasi berkas tidak valid.');
   return readFile(path.join(folderPenyimpanan(), lokasi));
+}
+
+/** Menghapus berkas yang sudah tersimpan. Dipakai saat penyimpanan ke database gagal. */
+export async function hapusBerkas(lokasi: string): Promise<void> {
+  if (!/^[0-9a-f-]{36}\.(png|jpg|pdf)$/.test(lokasi)) return;
+  await unlink(path.join(folderPenyimpanan(), lokasi)).catch(() => {});
 }

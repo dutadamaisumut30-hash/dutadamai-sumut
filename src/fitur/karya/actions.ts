@@ -7,11 +7,12 @@ import { buatKodeLacak } from '@/lib/kode-lacak';
 import { ambilIp, izinkan, kunciIp } from '@/lib/batas-laju';
 import { BACKEND_SIAP, PESAN_BELUM_TERSAMBUNG } from '@/lib/status-sistem';
 import { cekTurnstile } from '@/lib/turnstile';
-import { layananKirimKarya, type HasilKirim } from './layanan';
+import { BATAS_BERKAS_KARYA, layananKirimKarya, type BerkasKirim, type HasilKirim } from './layanan';
 
 export type { HasilKirim };
 
-export async function kirimKarya(input: unknown, turnstile = ''): Promise<HasilKirim> {
+/** formData berisi: 'data' (JSON formulir), 'turnstile', dan 'berkas' (File, untuk desain). */
+export async function kirimKarya(formData: FormData): Promise<HasilKirim> {
   if (!BACKEND_SIAP) return { ok: false, pesan: PESAN_BELUM_TERSAMBUNG };
 
   const url = process.env.DATABASE_URL;
@@ -26,7 +27,23 @@ export async function kirimKarya(input: unknown, turnstile = ''): Promise<HasilK
     return { ok: false, pesan: 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.' };
   }
 
-  return layananKirimKarya(input, { turnstile, ip }, {
+  let input: unknown;
+  try {
+    input = JSON.parse(String(formData.get('data') ?? ''));
+  } catch {
+    return { ok: false, pesan: 'Data formulir tidak terbaca. Muat ulang halaman lalu coba lagi.' };
+  }
+
+  let berkas: BerkasKirim | null = null;
+  const berkasFile = formData.get('berkas');
+  if (berkasFile instanceof File && berkasFile.size > 0) {
+    if (berkasFile.size > BATAS_BERKAS_KARYA) {
+      return { ok: false, pesan: 'Berkas lebih dari 5 MB. Kecilkan dulu, ya.' };
+    }
+    berkas = { nama: berkasFile.name, mime: berkasFile.type, isi: Buffer.from(await berkasFile.arrayBuffer()) };
+  }
+
+  return layananKirimKarya(input, { turnstile: String(formData.get('turnstile') ?? ''), ip, berkas }, {
     db: dbTunggal(url),
     kunci: kunciDariEnv(kunciRaw),
     secretTurnstile: secret,
