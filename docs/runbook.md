@@ -16,6 +16,9 @@ Singkatan di bawah: `DC` = `docker compose --env-file docker/produksi.env -f doc
 7. Isi rubrik dan anggota tim awal: `DC run --rm migrasi pnpm exec tsx scripts/seed-papan.ts` (hanya jika tabelnya masih kosong).
 8. Pasang backup harian: `crontab -e`, tambahkan
    `15 2 * * * /opt/dutadamai-sumut/docker/backup.sh >> /var/log/dutadamai-backup.log 2>&1`
+9. Pasang penghapusan kontak otomatis (ADR 005, wajib sebelum pilot). Tambahkan di crontab yang sama:
+   `45 2 * * * cd /opt/dutadamai-sumut && docker compose --env-file docker/produksi.env -f docker/compose.prod.yml run --rm migrasi pnpm exec tsx scripts/hapus-kontak.ts >> /var/log/dutadamai-hapus-kontak.log 2>&1`
+   Cek log setelah hari pertama. Barisnya berbunyi `Selesai: N kontak dihapus, M dijadwalkan.`
 
 ## Cek kesehatan
 
