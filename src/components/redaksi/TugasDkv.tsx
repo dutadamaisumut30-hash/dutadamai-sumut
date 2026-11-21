@@ -1,36 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { pindahStatus, type StatusTulisan } from '@/fitur/tulisan/alur-status';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { gantiStatus } from '@/fitur/tulisan/actions';
+import type { StatusTulisan } from '@/fitur/tulisan/alur-status';
+import type { ItemPapanDb } from '@/fitur/tulisan/layanan';
 import { formatTanggalPendek, KOLOM, labelTelat } from '@/fitur/tulisan/papan';
-import { ITEM_PAPAN_CONTOH, type ItemPapan } from '@/lib/papan-contoh';
 
-const HARI_INI = '2026-11-19';
-const AWAL: ItemPapan[] = ITEM_PAPAN_CONTOH.filter(
-  (i) => i.status === 'menunggu_desain' || i.status === 'didesain',
-);
-
-export function TugasDkv() {
-  const [items, setItems] = useState<ItemPapan[]>(AWAL);
+export function TugasDkv({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: string }) {
+  const router = useRouter();
   const [pesan, setPesan] = useState('');
+  const [sibuk, mulai] = useTransition();
 
-  function majukan(id: string, ke: StatusTulisan) {
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
-    const hasil = pindahStatus({ dari: item.status, ke, peran: 'dkv' });
-    if (!hasil.ok) return setPesan(hasil.alasan);
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: ke } : i)));
-    setPesan(ke === 'didesain'
-      ? `"${item.judul}" sekarang kamu kerjakan.`
-      : `"${item.judul}" dikirim ke Review akhir.`);
+  function majukan(item: ItemPapanDb, ke: StatusTulisan) {
+    mulai(async () => {
+      const hasil = await gantiStatus(item.id, ke);
+      if (!hasil.ok) return setPesan(hasil.pesan);
+      setPesan(ke === 'didesain'
+        ? `"${item.judul}" sekarang kamu kerjakan.`
+        : `"${item.judul}" dikirim ke Review akhir.`);
+      router.refresh();
+    });
   }
 
-  const baru = items.filter((i) => i.status === 'menunggu_desain');
-  const dikerjakan = items.filter((i) => i.status === 'didesain');
+  const baru = awal.filter((i) => i.status === 'menunggu_desain');
+  const dikerjakan = awal.filter((i) => i.status === 'didesain');
 
   return (
     <>
-      <div className="warn">Pratinjau tanpa login. Perubahan di sini belum tersimpan ke database.</div>
       {pesan && <div className="ok" role="status" style={{ marginTop: 12 }}>{pesan}</div>}
 
       <section style={{ marginTop: 18 }}>
@@ -38,8 +35,8 @@ export function TugasDkv() {
         <p className="muted">{KOLOM.menunggu_desain.deskripsi}</p>
         <div className="grid3">
           {baru.map((i) => (
-            <TugasKartu key={i.id} item={i} aksi={
-              <button type="button" className="btn" onClick={() => majukan(i.id, 'didesain')}>Ambil tugas</button>
+            <TugasKartu key={i.id} item={i} hariIni={hariIni} aksi={
+              <button type="button" className="btn" disabled={sibuk} onClick={() => majukan(i, 'didesain')}>Ambil tugas</button>
             } />
           ))}
           {baru.length === 0 && <p className="muted">Tidak ada tugas baru.</p>}
@@ -51,8 +48,8 @@ export function TugasDkv() {
         <p className="muted">{KOLOM.didesain.deskripsi}</p>
         <div className="grid3">
           {dikerjakan.map((i) => (
-            <TugasKartu key={i.id} item={i} aksi={
-              <button type="button" className="btn" onClick={() => majukan(i.id, 'review_akhir')}>Kirim ke review akhir</button>
+            <TugasKartu key={i.id} item={i} hariIni={hariIni} aksi={
+              <button type="button" className="btn" disabled={sibuk} onClick={() => majukan(i, 'review_akhir')}>Kirim ke review akhir</button>
             } />
           ))}
           {dikerjakan.length === 0 && <p className="muted">Belum ada tugas yang kamu kerjakan.</p>}
@@ -62,8 +59,8 @@ export function TugasDkv() {
   );
 }
 
-function TugasKartu({ item, aksi }: { item: ItemPapan; aksi: React.ReactNode }) {
-  const telat = labelTelat(item.tenggat, HARI_INI);
+function TugasKartu({ item, hariIni, aksi }: { item: ItemPapanDb; hariIni: string; aksi: React.ReactNode }) {
+  const telat = labelTelat(item.tenggat, hariIni);
   return (
     <div className={`card pad${telat ? ' late' : ''}`}>
       <span className="tagl">{item.rubrik}</span>
