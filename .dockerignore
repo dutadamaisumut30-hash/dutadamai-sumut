@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.github
+.vscode
+.env
+.env.*
+docker/produksi.env
+penyimpanan
+tests
+docs
+coverage
+*.log
+tsconfig.tsbuildinfo

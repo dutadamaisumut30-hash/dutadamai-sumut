@@ -1,1 +1,76 @@
-# TODO: caddy, web, db, umami di server. Diisi saat deploy disiapkan.
+# Produksi di VPS (ADR 008): caddy, web, db, dan satu langkah migrasi.
+# Jalankan dari akar repo:
+#   docker compose --env-file docker/produksi.env -f docker/compose.prod.yml up -d --build
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    env_file: produksi.env
+    volumes:
+      - dd_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrasi:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: alat
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+    image: dutadamai-alat:${TAG:-terbaru}
+    env_file: produksi.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: web
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+    image: dutadamai-web:${TAG:-terbaru}
+    restart: unless-stopped
+    env_file: produksi.env
+    depends_on:
+      migrasi:
+        condition: service_completed_successfully
+    volumes:
+      - dd_penyimpanan:/data/penyimpanan
+    # Tanpa "ports": hanya Caddy yang bisa menjangkau aplikasi.
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/masuk').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  dd_pgdata:
+  dd_penyimpanan:
+  caddy_data:
+  caddy_config:

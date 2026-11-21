@@ -23,7 +23,7 @@ export function cocokSignature(isi: Buffer, mime: string): boolean {
 }
 
 function folderPenyimpanan(): string {
-  return process.env.PENYIMPANAN_DIR ?? path.join(process.cwd(), 'penyimpanan');
+  return process.env.PENYIMPANAN_DIR || path.join(process.cwd(), 'penyimpanan');
 }
 
 /** Menyimpan isi berkas dengan nama acak. Mengembalikan nama berkas di folder penyimpanan. */

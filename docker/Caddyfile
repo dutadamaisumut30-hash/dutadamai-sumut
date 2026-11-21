@@ -1,1 +1,18 @@
-# TODO: reverse proxy dan HTTPS otomatis. Diisi saat deploy disiapkan.
+# Reverse proxy dan HTTPS otomatis (sertifikat dari Let's Encrypt). DOMAIN diisi dari docker/produksi.env.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Selaras dengan batas unggah berkas di aplikasi (10 MB berkas, 12 MB body).
+	request_body {
+		max_size 12MB
+	}
+
+	header {
+		# Satu minggu dulu selama pilot. Naikkan setelah HTTPS terbukti stabil.
+		Strict-Transport-Security "max-age=604800"
+		-Server
+	}
+
+	# Caddy menimpa X-Forwarded-For dari klien, jadi batas laju per IP tidak bisa dipalsukan.
+	reverse_proxy web:3000
+}
