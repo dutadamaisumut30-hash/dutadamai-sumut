@@ -4,6 +4,7 @@ import { berkas, karya } from '@/lib/db/schema';
 import { catatAudit } from '@/lib/audit';
 import type { Peran } from '@/lib/izin';
 import type { TahapKarya } from './alur-seleksi';
+import { tanggalHapusKontak } from './kontak-retensi';
 import { pindahSeleksi, type HasilSeleksi } from './pindah-seleksi';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,9 +65,21 @@ export async function gantiTahapKarya(
     const cek = pindahSeleksi({ dari: k.tahap, ke, peran, catatan });
     if (!cek.ok) return cek;
 
+    // ADR 005: keputusan final (terbit, ditolak) dan pengembalian memulai hitungan 30 hari.
+    // Revisi yang masuk kembali ke antrean membatalkan hitungan itu.
+    const hapusPada =
+      ke === 'terbit' || ke === 'ditolak' || ke === 'dikembalikan'
+        ? tanggalHapusKontak(new Date())
+        : ke === 'antrean'
+          ? null
+          : undefined;
     await db
       .update(karya)
-      .set({ tahap: ke, ...(ke === 'dikembalikan' ? { catatan: catatan!.trim() } : {}) })
+      .set({
+        tahap: ke,
+        ...(ke === 'dikembalikan' ? { catatan: catatan!.trim() } : {}),
+        ...(hapusPada !== undefined ? { kontakHapusPada: hapusPada } : {}),
+      })
       .where(eq(karya.id, id));
     await catatAudit(db, {
       peran,

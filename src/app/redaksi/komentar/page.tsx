@@ -14,7 +14,7 @@ export default async function HalamanKomentar() {
       <div className="kicker">Ruang redaksi · moderasi</div>
       <p className="muted"><Link href="/redaksi/admin">← Admin redaksi</Link></p>
       <h1>Komentar dan laporan</h1>
-      <p className="muted">Komentar dengan laporan terbanyak tampil paling atas.</p>
+      <p className="muted">Komentar dengan laporan terbanyak tampil paling atas. <Link href="/redaksi/laporan">Lihat laporan konten dari pengunjung →</Link></p>
       <ModerasiKomentar awal={awal} />
     </main>
   );

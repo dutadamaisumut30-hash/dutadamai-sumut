@@ -18,7 +18,7 @@ export default async function HalamanPapanRedaksi() {
       <p className="muted">
         Lima status tetap, tidak boleh dilompati. Seret kartu ke kolom berikutnya, atau pilih status dari daftar di kartu. Mundur hanya dari Review akhir, dengan catatan wajib.
       </p>
-      <p><Link href="/redaksi/dkv">Tampilan DKV →</Link> · <Link href="/redaksi/kotak-saran">Kotak saran →</Link> · <Link href="/redaksi/admin">Admin →</Link> · <Link href="/redaksi/rubrik">Rubrik →</Link></p>
+      <p><Link href="/redaksi/dkv">Tampilan DKV →</Link> · <Link href="/redaksi/kotak-saran">Kotak saran →</Link> · <Link href="/redaksi/laporan">Laporan konten →</Link> · <Link href="/redaksi/tulis">Tulisanku →</Link> · <Link href="/redaksi/admin">Admin →</Link> · <Link href="/redaksi/rubrik">Rubrik →</Link></p>
       <PapanRedaksi awal={awal} hariIni={hariIni} />
       <p style={{ marginTop: 24 }}><Link href="/">Kembali ke beranda</Link></p>
     </main>

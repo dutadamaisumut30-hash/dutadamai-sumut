@@ -12,6 +12,8 @@ export const STATUS_KOMENTAR = ['menunggu', 'tampil', 'disembunyikan'] as const;
 export const STATUS_SARAN = ['baru', 'dibaca', 'ditindak', 'diarsip'] as const;
 export const KATEGORI_SARAN = ['Saran konten', 'Masalah teknis', 'Ide kolaborasi'] as const;
 export const JENIS_KARYA = ['tulisan', 'desain'] as const;
+export const ALASAN_LAPORAN = ['Ujaran kebencian atau SARA', 'Data pribadi orang lain', 'Promosi atau spam', 'Lainnya'] as const;
+export const STATUS_LAPORAN = ['baru', 'ditangani'] as const;
 
 export const peranEnum = pgEnum('peran', PERAN_TIM);
 export const statusTulisanEnum = pgEnum('status_tulisan', STATUS_TULISAN);
@@ -47,6 +49,8 @@ export const tulisan = pgTable('tulisan', {
   status: statusTulisanEnum('status').notNull().default('draf'),
   penanggung: text('penanggung').array().notNull().default(sql`'{}'`),
   tenggat: date('tenggat').notNull(),
+  /** Akun penulis (Blogger) yang membuat draf lewat web. Kosong untuk tulisan dari data awal. */
+  penulisId: text('penulis_id'),
   dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
   diperbarui: timestamp('diperbarui', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('tulisan_status_idx').on(t.status)]);
@@ -90,6 +94,17 @@ export const saran = pgTable('saran', {
   status: statusSaranEnum('status').notNull().default('baru'),
   diterimaPada: timestamp('diterima_pada', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('saran_status_idx').on(t.status)]);
+
+/** Laporan konten dari pengunjung (ujaran kebencian, data pribadi, spam). Ditangani Editor dan Admin. */
+export const laporan = pgTable('laporan', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  alasan: text('alasan').notNull(),
+  catatan: text('catatan').notNull().default(''),
+  /** Alamat halaman yang dilaporkan, diisi pelapor (opsional). */
+  alamat: text('alamat').notNull().default(''),
+  status: text('status').notNull().default('baru'),
+  dibuatPada: timestamp('dibuat_pada', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('laporan_status_idx').on(t.status)]);
 
 /** Catatan aksi tim (memori proyek: log audit). Hanya ditambah, tidak diubah atau dihapus. */
 export const logAudit = pgTable('log_audit', {

@@ -43,6 +43,13 @@
       "when": 1795270163177,
       "tag": "0005_cloudy_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795277685542,
+      "tag": "0006_solid_lionheart",
+      "breakpoints": true
     }
   ]
 }
