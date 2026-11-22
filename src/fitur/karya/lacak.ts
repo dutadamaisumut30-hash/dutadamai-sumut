@@ -9,6 +9,8 @@ export interface StatusLacak {
   jenis: 'tulisan' | 'desain';
   diterima: Date;
   tahap: TahapKarya;
+  /** Catatan redaksi untuk pengirim. Hanya terisi saat karya dikembalikan. */
+  catatan?: string;
 }
 
 export async function ambilStatusLacak(
@@ -17,9 +19,12 @@ export async function ambilStatusLacak(
   kode: string,
 ): Promise<StatusLacak | null> {
   const [baris] = await db
-    .select({ judul: karya.judul, jenis: karya.jenis, diterima: karya.dibuatPada, tahap: karya.tahap })
+    .select({ judul: karya.judul, jenis: karya.jenis, diterima: karya.dibuatPada, tahap: karya.tahap, catatan: karya.catatan })
     .from(karya)
     .where(eq(karya.kodeLacak, kode))
     .limit(1);
-  return baris ?? null;
+  if (!baris) return null;
+  const { catatan, ...dasar } = baris;
+  // Catatan hanya relevan untuk pengirim saat karyanya dikembalikan.
+  return dasar.tahap === 'dikembalikan' && catatan ? { ...dasar, catatan } : dasar;
 }

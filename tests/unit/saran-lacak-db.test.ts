@@ -57,4 +57,14 @@ describe('kotak saran dan lacak di database', () => {
     expect(status).not.toHaveProperty('kontakTerenkripsi');
     expect(await ambilStatusLacak(db as unknown as DepsSaran['db'], 'DD-TIDAK-ADA')).toBeNull();
   });
+
+  it('catatan redaksi hanya tampil untuk karya yang dikembalikan', async () => {
+    const dbx = db as unknown as DepsSaran['db'];
+    await db.insert(s.karya).values([
+      { kodeLacak: 'DD-UJI-BALIK', jenis: 'tulisan', judul: 'Cerpen hujan', oleh: 'Sari', tahap: 'dikembalikan', catatan: 'Perjelas paragraf akhir.' },
+      { kodeLacak: 'DD-UJI-NILAI', jenis: 'tulisan', judul: 'Esai kota', oleh: 'Budi', tahap: 'dihubungi', catatan: 'catatan lama' },
+    ]);
+    expect((await ambilStatusLacak(dbx, 'DD-UJI-BALIK'))?.catatan).toBe('Perjelas paragraf akhir.');
+    expect(await ambilStatusLacak(dbx, 'DD-UJI-NILAI')).not.toHaveProperty('catatan');
+  });
 });

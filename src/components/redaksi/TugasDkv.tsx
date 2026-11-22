@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { gantiStatus } from '@/fitur/tulisan/actions';
@@ -64,7 +65,10 @@ function TugasKartu({ item, hariIni, aksi }: { item: ItemPapanDb; hariIni: strin
   return (
     <div className={`card pad${telat ? ' late' : ''}`}>
       <span className="tagl">{item.rubrik}</span>
-      <h3 style={{ margin: '6px 0' }}>{item.judul}</h3>
+      <h3 style={{ margin: '6px 0' }}>
+        <Link href={`/redaksi/tulisan/${item.id}`}>{item.judul}</Link>
+      </h3>
+      <p className="muted" style={{ margin: '0 0 6px' }}>Buka judul untuk membaca tulisan dan mengunggah desain.</p>
       <p className="muted" style={{ margin: 0 }}>
         Tenggat {formatTanggalPendek(item.tenggat)}
         {telat && <> · <span style={{ color: 'var(--red)', fontWeight: 700 }}>{telat}</span></>}

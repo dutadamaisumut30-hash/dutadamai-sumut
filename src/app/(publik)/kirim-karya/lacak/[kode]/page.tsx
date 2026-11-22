@@ -37,6 +37,16 @@ export default async function Lacak({ params }: Props) {
           </li>
         ))}
       </ol>
+      {status.tahap === 'dikembalikan' && (
+        <div className="warn" role="status">
+          <b>Karyamu dikembalikan untuk diperbaiki.</b>
+          {status.catatan && <p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>Catatan redaksi: {status.catatan}</p>}
+          <p style={{ margin: '6px 0 0' }}>
+            Perbaiki sesuai catatan. Redaksi menandai karyamu sebagai revisi masuk setelah perbaikannya diterima.
+            Kontakmu dihapus jika 30 hari tidak ada respons.
+          </p>
+        </div>
+      )}
     </section>
   );
 }
