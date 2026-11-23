@@ -132,16 +132,16 @@ th { color: var(--muted); }
 .n { color: var(--muted); }
 
 /* Footer */
-.site-footer { margin-top: 64px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 14px; }
+.site-footer { margin-top: 40px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 14px; }
 .site-footer a { color: var(--muted); text-decoration: none; }
 .site-footer a:hover, .site-footer a:focus-visible { color: var(--ink); }
-.site-footer .fkisi { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 40px; padding-top: 48px; padding-bottom: 32px; }
-.site-footer .fmerek { display: grid; gap: 16px; align-content: start; }
-.site-footer .flogo { height: 40px; width: auto; }
-.site-footer .fmerek p { margin: 0; max-width: 340px; line-height: 1.7; }
-.site-footer .fjudul { margin: 0 0 14px; color: var(--ink); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.site-footer .flist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.site-footer .fbawah { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 20px; padding-bottom: 24px; border-top: 1px solid var(--line); font-size: 13px; }
+.site-footer .fkisi { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 32px; padding-top: 32px; padding-bottom: 20px; }
+.site-footer .fmerek { display: grid; gap: 12px; align-content: start; }
+.site-footer .flogo { height: 34px; width: auto; }
+.site-footer .fmerek p { margin: 0; max-width: 340px; line-height: 1.6; font-size: 13px; }
+.site-footer .fjudul { margin: 0 0 10px; color: var(--ink); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.site-footer .flist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.site-footer .fbawah { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 14px; padding-bottom: 16px; border-top: 1px solid var(--line); font-size: 13px; }
 .site-footer .fbawah nav { display: flex; gap: 20px; }
 @media (max-width: 860px) { .site-footer .fkisi { grid-template-columns: repeat(2, minmax(0, 1fr)); } .site-footer .fmerek { grid-column: 1 / -1; } }
 @media (max-width: 480px) { .site-footer .fkisi { grid-template-columns: 1fr; gap: 28px; } }

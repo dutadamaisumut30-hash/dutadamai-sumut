@@ -1,0 +1,17 @@
+/* Hover kartu (CSS murni) dan gaya dasar Lenis. */
+.grid3 > .card { transition: transform .28s cubic-bezier(.2, .7, .2, 1), box-shadow .28s, border-color .28s; }
+.grid3 > .card > .ph, .grid3 > .card > img { transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
+@media (hover: hover) {
+  .grid3 > .card:hover { transform: translateY(-5px); box-shadow: 0 14px 24px -14px color-mix(in srgb, var(--ink) 45%, transparent); border-color: var(--lime); }
+  .grid3 > .card:hover > .ph, .grid3 > .card:hover > img { transform: scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grid3 > .card, .grid3 > .card > .ph, .grid3 > .card > img { transition: none; }
+  .grid3 > .card:hover, .grid3 > .card:hover > .ph, .grid3 > .card:hover > img { transform: none; }
+}
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
