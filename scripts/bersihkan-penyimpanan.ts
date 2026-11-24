@@ -6,11 +6,12 @@ import path from 'node:path';
 import { buatDb } from '../src/lib/db';
 import * as schema from '../src/lib/db/schema';
 
-const url = process.env.DATABASE_URL;
-if (!url) {
+const urlDb = process.env.DATABASE_URL;
+if (!urlDb) {
   console.error('DATABASE_URL belum diatur.');
   process.exit(1);
 }
+const url: string = urlDb;
 async function main() {
   const hapus = process.argv.includes('--hapus');
   const folder = process.env.PENYIMPANAN_DIR || path.join(process.cwd(), 'penyimpanan');
