@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Turnstile } from '@/components/publik/Turnstile';
+import { KeteranganVerifikasi, Turnstile } from '@/components/publik/Turnstile';
 import { kirimKomentarPublik } from '@/fitur/komentar/actions';
 
 export function KomentarForm({ tulisanId }: { tulisanId: string }) {
@@ -38,6 +38,7 @@ export function KomentarForm({ tulisanId }: { tulisanId: string }) {
       <label htmlFor="isi-komentar">Komentar</label>
       <textarea id="isi-komentar" rows={4} value={isi} onChange={(e) => setIsi(e.target.value)} required />
       <Turnstile onToken={setTurnstile} />
+      <KeteranganVerifikasi token={turnstile} sibuk={pending} />
       {pesan && <p role="alert" style={{ color: 'var(--red)' }}>{pesan}</p>}
       <button type="submit" className="btn" disabled={pending || !turnstile}>Kirim komentar</button>
     </form>

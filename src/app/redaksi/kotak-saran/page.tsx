@@ -14,7 +14,7 @@ export default async function HalamanKotakSaran() {
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · moderasi</div>
-      <p className="muted"><Link href="/redaksi">← Papan alur redaksi</Link></p>
+      <p className="muted"><Link href="/redaksi" className="kembali">← Papan alur redaksi</Link></p>
       <h1>Kotak saran</h1>
       <p className="muted">Saran dari publik. Tandai dibaca, lalu tindak lanjuti atau arsipkan.</p>
       <ModerasiSaran awal={awal} />

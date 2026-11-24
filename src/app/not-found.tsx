@@ -7,7 +7,7 @@ export default function NotFound() {
       <h1>Halaman ini tersesat</h1>
       <p className="muted">Satu lingkaran kami hilang dari tempatnya. Mungkin tautannya salah ketik, atau tulisannya sudah dipindah.</p>
       <Link className="btn" href="/">Yuk kembali ke beranda</Link>
-      <p style={{ marginTop: 14 }}><Link href="/cari" style={{ color: 'var(--accent)' }}>Atau cari tulisan</Link></p>
+      <p style={{ marginTop: 14 }}><Link href="/cari" className="kembali">Atau cari tulisan</Link></p>
     </main>
   );
 }

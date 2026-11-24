@@ -19,6 +19,12 @@ if (!(schema.PERAN_TIM as readonly string[]).includes(peran)) {
   process.exit(1);
 }
 
+if (!/^postgres(ql)?:\/\/[^<>\s]+@[^<>\s]+\/\S+$/.test(url)) {
+  console.error('DATABASE_URL bukan alamat PostgreSQL yang valid (mungkin masih berisi teks contoh dari sesi PowerShell sebelumnya).');
+  console.error('Jalankan: Remove-Item Env:DATABASE_URL   lalu ulangi dengan --env-file=.env');
+  process.exit(1);
+}
+
 const db = buatDb(url);
 const auth = buatAuth({
   db,
@@ -38,5 +44,7 @@ jalankan()
   .then(() => process.exit(0))
   .catch((err: unknown) => {
     console.error('Gagal membuat akun:', err instanceof Error ? err.message : err);
+    const sebab = err instanceof Error ? (err as { cause?: unknown }).cause : undefined;
+    if (sebab) console.error('Penyebab:', sebab instanceof Error ? sebab.message : sebab);
     process.exit(1);
   });

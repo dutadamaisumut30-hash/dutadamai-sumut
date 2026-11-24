@@ -13,6 +13,11 @@ COPY . .
 # NEXT_PUBLIC_* ditanam saat build, jadi kunci situs Turnstile harus diberikan di sini.
 ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
+# Umami (opsional): ikut ditanam saat build, juga dipakai CSP di next.config.ts.
+ARG NEXT_PUBLIC_UMAMI_URL=
+ARG NEXT_PUBLIC_UMAMI_ID=
+ARG NEXT_PUBLIC_UMAMI_DASHBOARD=
+ENV NEXT_PUBLIC_UMAMI_URL=$NEXT_PUBLIC_UMAMI_URL NEXT_PUBLIC_UMAMI_ID=$NEXT_PUBLIC_UMAMI_ID NEXT_PUBLIC_UMAMI_DASHBOARD=$NEXT_PUBLIC_UMAMI_DASHBOARD
 ENV NEXT_TELEMETRY_DISABLED=1
 # Nilai ini hanya ada selama tahap build dan tidak ikut ke image web.
 ENV BETTER_AUTH_SECRET=hanya-untuk-build-tidak-dipakai-di-produksi-0123456789

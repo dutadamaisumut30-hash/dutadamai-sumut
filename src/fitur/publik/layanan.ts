@@ -17,6 +17,8 @@ export interface TulisanPublik {
   tanggalTampil: string;
   warna: Warna;
   isi: string[];
+  /** Ada gambar sampul (PNG/JPG) yang diunggah DKV atau Editor. Gambar dilayani di /api/sampul/[slug]. */
+  sampul: boolean;
 }
 
 type Warna = 'ph-warm' | 'ph-blue' | 'ph-rose' | '';
@@ -42,6 +44,7 @@ export async function ambilTulisanTerbit(db: Db, rubrikSlug?: string): Promise<T
     : eq(tulisan.status, 'terbit');
   const baris = await db
     .select({
+      id: tulisan.id,
       slug: tulisan.slug,
       judul: tulisan.judul,
       isi: tulisan.isi,
@@ -54,6 +57,15 @@ export async function ambilTulisanTerbit(db: Db, rubrikSlug?: string): Promise<T
     .innerJoin(rubrik, eq(tulisan.rubrikSlug, rubrik.slug))
     .where(kondisi)
     .orderBy(desc(tulisan.diperbarui));
+
+  const adaSampul = new Set<string>();
+  if (baris.length > 0) {
+    const g = await db
+      .select({ tulisanId: berkas.tulisanId })
+      .from(berkas)
+      .where(and(inArray(berkas.tulisanId, baris.map((b: any) => b.id)), inArray(berkas.jenisMime, ['image/png', 'image/jpeg'])));
+    for (const x of g as { tulisanId: string | null }[]) if (x.tulisanId) adaSampul.add(x.tulisanId);
+  }
 
   return baris.map((b: any, i: number) => {
     const par = paragraf(b.isi);
@@ -69,6 +81,7 @@ export async function ambilTulisanTerbit(db: Db, rubrikSlug?: string): Promise<T
       tanggalTampil: tanggal(b.diperbarui),
       warna: WARNA[i % WARNA.length],
       isi: par,
+      sampul: adaSampul.has(b.id),
     };
   });
 }

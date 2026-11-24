@@ -1,0 +1,21 @@
+/* Halaman Tim publik. Hover dan reveal kartu datang dari efek.css dan EfekScroll. */
+.tim-hero { padding: 8px 0 4px; }
+.tim-chip { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 14px 0 0; }
+.tim-chip a { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 700; font-size: 13px; transition: background .2s, border-color .2s; }
+.tim-chip a:hover, .tim-chip a:focus-visible { background: var(--chip); border-color: var(--leaf); }
+.tim-chip span { display: inline-grid; place-items: center; min-width: 20px; height: 20px; border-radius: 999px; background: var(--lime); color: var(--btn-ink); font-size: 11px; }
+.tim-divisi { scroll-margin-top: 90px; }
+.tim-divisi .sec { align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.tim-divisi .sec .muted { font-size: 13px; }
+.anggota { display: flex; align-items: center; gap: 14px; }
+.anggota h3 { margin: 0; }
+.anggota p { margin: 2px 0 0; }
+.anggota .jabatan { color: var(--accent); font-weight: 700; font-size: 13px; }
+.avatar { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; font-weight: 800; font-size: 17px; color: #0b1a0d; background: var(--leaf); transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
+.grid3 > .anggota:hover .avatar { transform: scale(1.1) rotate(-4deg); }
+[data-divisi='Blogger'] .avatar { background: var(--lime); }
+[data-divisi='Editor'] .avatar { background: var(--leaf); }
+[data-divisi='DKV'] .avatar { background: var(--deep); color: #fff; }
+[data-divisi='IT'] .avatar { background: var(--accent); color: #fff; }
+[data-theme='dark'] [data-divisi='IT'] .avatar { background: var(--lime); color: #0b1a0d; }
+@media (prefers-reduced-motion: reduce) { .avatar, .grid3 > .anggota:hover .avatar { transition: none; transform: none; } }

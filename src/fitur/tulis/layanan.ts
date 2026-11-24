@@ -3,10 +3,11 @@ import { randomBytes } from 'node:crypto';
 import { and, desc, eq } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
-import { rubrik, tulisan } from '@/lib/db/schema';
+import { berkas, rubrik, tulisan } from '@/lib/db/schema';
+import { hapusBerkas } from '@/lib/penyimpanan';
 import { catatAudit } from '@/lib/audit';
-import type { Peran } from '@/lib/izin';
-import { ubahStatus } from '@/fitur/tulisan/layanan';
+import { bolehAksi, type Peran } from '@/lib/izin';
+import { ambilCatatanRevisi, ubahStatus } from '@/fitur/tulisan/layanan';
 import type { StatusTulisan } from '@/fitur/tulisan/alur-status';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,6 +54,7 @@ export interface TulisanSaya {
   rubrik: string;
   status: StatusTulisan;
   tenggat: string;
+  catatanRevisi?: string;
 }
 
 export async function ambilRubrikPilihan(db: Db): Promise<{ slug: string; nama: string }[]> {
@@ -74,7 +76,8 @@ export async function ambilTulisanSaya(db: Db, userId: string): Promise<TulisanS
     .innerJoin(rubrik, eq(tulisan.rubrikSlug, rubrik.slug))
     .where(eq(tulisan.penulisId, userId))
     .orderBy(desc(tulisan.dibuatPada));
-  return baris.map((b: any) => ({ ...b, status: b.status as StatusTulisan }));
+  const catatan = await ambilCatatanRevisi(db, baris.map((b: any) => b.id));
+  return baris.map((b: any) => ({ ...b, status: b.status as StatusTulisan, catatanRevisi: catatan[b.id] }));
 }
 
 async function rubrikAda(db: Db, slug: string): Promise<boolean> {
@@ -149,5 +152,45 @@ export async function ajukanDraf(db: Db, penulis: Penulis, id: string): Promise<
     return hasil.ok ? { ok: true } : hasil;
   } catch {
     return { ok: false, pesan: 'Pengajuan belum tersimpan. Coba lagi.' };
+  }
+}
+
+/** Hapus draf. Hanya status draf. Pemilik boleh; Editor dan Admin boleh menghapus draf siapa pun. */
+export async function hapusDraf(db: Db, penulis: Penulis, id: string): Promise<HasilTulis> {
+  try {
+    const [t] = await db
+      .select({ id: tulisan.id, status: tulisan.status, penulisId: tulisan.penulisId, judul: tulisan.judul })
+      .from(tulisan)
+      .where(eq(tulisan.id, id));
+    if (!t) return { ok: false, pesan: 'Tulisan tidak ditemukan.' };
+    if (t.penulisId !== penulis.userId && !bolehAksi(penulis.peran, 'terbitkan')) {
+      return { ok: false, pesan: 'Kamu hanya bisa menghapus draf milikmu sendiri.' };
+    }
+    if (t.status !== 'draf') return { ok: false, pesan: 'Hanya tulisan berstatus draf yang bisa dihapus.' };
+    await db.delete(tulisan).where(eq(tulisan.id, id));
+    await catatAudit(db, { peran: penulis.peran, aksi: 'hapus_draf', objek: 'tulisan', objekId: id, catatan: String(t.judul).slice(0, 120) });
+    return { ok: true };
+  } catch {
+    return { ok: false, pesan: 'Draf belum terhapus. Coba lagi.' };
+  }
+}
+
+/**
+ * Hapus tulisan permanen pada status apa pun. Hanya Editor dan Admin.
+ * Komentar dan berkas ikut terhapus (cascade); file di penyimpanan dihapus juga.
+ * Untuk menyembunyikan tulisan terbit tanpa menghapus, pakai "Tarik dari terbit".
+ */
+export async function hapusTulisan(db: Db, pelaku: { peran: Peran }, id: string): Promise<HasilTulis> {
+  if (!bolehAksi(pelaku.peran, 'ubah_status_review')) return { ok: false, pesan: 'Hanya Editor dan Admin yang boleh menghapus tulisan.' };
+  try {
+    const [t] = await db.select({ id: tulisan.id, judul: tulisan.judul, status: tulisan.status }).from(tulisan).where(eq(tulisan.id, id));
+    if (!t) return { ok: false, pesan: 'Tulisan tidak ditemukan.' };
+    const files = await db.select({ lokasi: berkas.lokasi }).from(berkas).where(eq(berkas.tulisanId, id));
+    await db.delete(tulisan).where(eq(tulisan.id, id));
+    for (const f of files as { lokasi: string }[]) await hapusBerkas(f.lokasi).catch(() => undefined);
+    await catatAudit(db, { peran: pelaku.peran, aksi: 'hapus_tulisan', objek: 'tulisan', objekId: id, catatan: `${t.status}: ${String(t.judul).slice(0, 110)}` });
+    return { ok: true };
+  } catch {
+    return { ok: false, pesan: 'Tulisan belum terhapus. Coba lagi.' };
   }
 }

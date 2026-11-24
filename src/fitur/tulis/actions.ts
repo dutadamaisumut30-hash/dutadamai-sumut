@@ -3,7 +3,7 @@
 import { dbTunggal } from '@/lib/db/tunggal';
 import { urlDbWajib } from '@/lib/db/url';
 import { gerbangAksi } from '@/lib/gerbang-aksi';
-import { ajukanDraf, ambilRubrikPilihan, ambilTulisanSaya, buatDraf, simpanDraf, type HasilTulis, type TulisanSaya } from './layanan';
+import { ajukanDraf, ambilRubrikPilihan, hapusDraf, hapusTulisan, ambilTulisanSaya, buatDraf, simpanDraf, type HasilTulis, type TulisanSaya } from './layanan';
 
 const PESAN_TOLAK = 'Hanya Blogger, Editor, dan Admin yang boleh menulis draf.';
 
@@ -30,4 +30,16 @@ export async function ajukanDrafAksi(id: string): Promise<HasilTulis> {
   const g = await gerbangAksi('tulis_draf', PESAN_TOLAK);
   if (!g.ok) return { ok: false, pesan: g.alasan };
   return ajukanDraf(dbTunggal(urlDbWajib()), { userId: g.userId, nama: g.nama, peran: g.peran }, id);
+}
+
+export async function hapusDrafAksi(id: string): Promise<HasilTulis> {
+  const g = await gerbangAksi('tulis_draf', PESAN_TOLAK);
+  if (!g.ok) return { ok: false, pesan: g.alasan };
+  return hapusDraf(dbTunggal(urlDbWajib()), { userId: g.userId, nama: g.nama, peran: g.peran }, id);
+}
+
+export async function hapusTulisanAksi(id: string): Promise<HasilTulis> {
+  const g = await gerbangAksi('ubah_status_review', 'Hanya Editor dan Admin yang boleh menghapus tulisan.');
+  if (!g.ok) return { ok: false, pesan: g.alasan };
+  return hapusTulisan(dbTunggal(urlDbWajib()), { peran: g.peran }, id);
 }

@@ -1,5 +1,6 @@
-// Lima status tetap sesuai keputusan tim (ACC 18 Nov 2026): tidak boleh dilompati.
-// Maju hanya satu langkah. Mundur hanya dari review_akhir, dengan catatan wajib.
+// Lima status tetap sesuai keputusan tim (ACC 18 Nov 2026): tidak boleh dilompati saat maju.
+// Maju hanya satu langkah. Mundur (revisi atau tarik dari terbit): keputusan 23 Nov 2026, dari status mana pun
+// ke status yang lebih awal, hanya Editor dan Admin, dengan catatan wajib.
 // Status terjadwal dan arsip dihapus: tidak ada di keputusan tim. Tambahkan lewat keputusan baru.
 
 import { bolehAksi, type Aksi, type Peran } from '@/lib/izin';
@@ -51,11 +52,8 @@ export function pindahStatus(input: {
   }
 
   if (URUTAN[ke] < URUTAN[dari]) {
-    if (dari !== 'review_akhir') {
-      return { ok: false, alasan: 'Tulisan hanya bisa mundur dari Review akhir.' };
-    }
     if (!bolehAksi(peran, 'ubah_status_review')) {
-      return { ok: false, alasan: 'Hanya Editor dan Admin yang boleh mengembalikan tulisan dari review.' };
+      return { ok: false, alasan: 'Hanya Editor dan Admin yang boleh mengembalikan atau menarik tulisan.' };
     }
     if (!catatan || catatan.trim().length === 0) {
       return { ok: false, alasan: 'Catatan wajib diisi saat mengembalikan tulisan.' };

@@ -21,6 +21,7 @@ const BANTUAN = [
   { href: '/kebijakan-privasi', label: 'Kebijakan privasi' },
   { href: '/lapor', label: 'Lapor konten' },
   { href: '/kontak', label: 'Kontak' },
+  { href: '/masuk', label: 'Masuk tim' },
 ];
 
 function Kolom({ judul, items }: { judul: string; items: { href: string; label: string }[] }) {

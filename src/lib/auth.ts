@@ -6,7 +6,8 @@ import { buatAuth } from '@/lib/auth/konfigurasi';
 const url = process.env.DATABASE_URL ?? 'postgres://dutadamai:dutadamai@localhost:5432/dutadamai';
 
 const secret = process.env.BETTER_AUTH_SECRET;
-if (!secret && process.env.NODE_ENV === 'production') {
+// Saat `next build` mengumpulkan data halaman, rahasia belum diperlukan. Server produksi tetap wajib memilikinya.
+if (!secret && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
   throw new Error('BETTER_AUTH_SECRET wajib diisi di produksi.');
 }
 

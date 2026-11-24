@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 
+// Mode uji (staging saja): tombol isi cepat untuk akun uji. Aktif hanya jika NEXT_PUBLIC_MODE_UJI=1. Jangan aktifkan di produksi.
+const MODE_UJI = process.env.NEXT_PUBLIC_MODE_UJI === '1';
+const SANDI_UJI = process.env.NEXT_PUBLIC_SANDI_UJI ?? '';
+const AKUN_UJI = [
+  { label: 'Blogger', email: 'blogger.uji@contoh.test' },
+  { label: 'DKV', email: 'dkv.uji@contoh.test' },
+  { label: 'Editor', email: 'editor.uji@contoh.test' },
+];
+
 export function FormMasuk() {
   const [tahap, setTahap] = useState<'login' | 'kode'>('login');
   const [email, setEmail] = useState('');
@@ -19,7 +28,7 @@ export function FormMasuk() {
     setSibuk(false);
     if (error) return setPesan('Email atau kata sandi salah.');
     if ((data as { twoFactorRedirect?: boolean } | null)?.twoFactorRedirect) return setTahap('kode');
-    window.location.href = '/akun/keamanan';
+    window.location.href = '/redaksi';
   }
 
   async function verifikasi(e: React.FormEvent) {
@@ -29,7 +38,7 @@ export function FormMasuk() {
     const { error } = await authClient.twoFactor.verifyTotp({ code: kode });
     setSibuk(false);
     if (error) return setPesan('Kode tidak valid. Periksa aplikasi authenticator kamu.');
-    window.location.href = '/akun/keamanan';
+    window.location.href = '/redaksi';
   }
 
   if (tahap === 'kode') {
@@ -52,6 +61,18 @@ export function FormMasuk() {
       <input id="sandi-masuk" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       {pesan && <p role="alert" style={{ color: 'var(--red)' }}>{pesan}</p>}
       <button type="submit" className="btn" disabled={sibuk} style={{ marginTop: 12 }}>Masuk</button>
+      {MODE_UJI && (
+        <div className="masuk-uji">
+          <p>Mode uji: isi otomatis akun contoh (hanya di staging).</p>
+          <div>
+            {AKUN_UJI.map((a) => (
+              <button key={a.email} type="button" className="btn btn-ghost" onClick={() => { setEmail(a.email); setPassword(SANDI_UJI); }}>
+                Masuk sebagai {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </form>
   );
 }

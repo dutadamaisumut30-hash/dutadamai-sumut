@@ -21,6 +21,9 @@ services:
       target: alat
       args:
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        NEXT_PUBLIC_UMAMI_URL: ${NEXT_PUBLIC_UMAMI_URL:-}
+        NEXT_PUBLIC_UMAMI_ID: ${NEXT_PUBLIC_UMAMI_ID:-}
+        NEXT_PUBLIC_UMAMI_DASHBOARD: ${NEXT_PUBLIC_UMAMI_DASHBOARD:-}
     image: dutadamai-alat:${TAG:-terbaru}
     env_file: produksi.env
     depends_on:
@@ -35,6 +38,9 @@ services:
       target: web
       args:
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        NEXT_PUBLIC_UMAMI_URL: ${NEXT_PUBLIC_UMAMI_URL:-}
+        NEXT_PUBLIC_UMAMI_ID: ${NEXT_PUBLIC_UMAMI_ID:-}
+        NEXT_PUBLIC_UMAMI_DASHBOARD: ${NEXT_PUBLIC_UMAMI_DASHBOARD:-}
     image: dutadamai-web:${TAG:-terbaru}
     restart: unless-stopped
     env_file: produksi.env

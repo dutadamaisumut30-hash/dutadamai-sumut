@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ajukanDrafAksi, buatDrafAksi, simpanDrafAksi } from '@/fitur/tulis/actions';
+import { ajukanDrafAksi, buatDrafAksi, hapusDrafAksi, simpanDrafAksi } from '@/fitur/tulis/actions';
 import type { TulisanSaya } from '@/fitur/tulis/layanan';
 import { KOLOM } from '@/fitur/tulisan/papan';
+import { STATUS_TULISAN } from '@/fitur/tulisan/alur-status';
 
 type Rubrik = { slug: string; nama: string };
 
@@ -19,6 +20,16 @@ function FormDraf({
   const [galat, setGalat] = useState(false);
   const [sibuk, mulai] = useTransition();
   const baru = !id;
+  const [konfirmasi, setKonfirmasi] = useState(false);
+
+  function hapus() {
+    if (!id) return;
+    mulai(async () => {
+      const h = await hapusDrafAksi(id);
+      if (!h.ok) return selesai(false, h.pesan);
+      router.refresh();
+    });
+  }
 
   function selesai(ok: boolean, teks: string) {
     setGalat(!ok);
@@ -67,6 +78,14 @@ function FormDraf({
         {!baru && !sudahAjukan && (
           <button type="button" className="btn" disabled={sibuk} onClick={ajukan}>Ajukan ke desain</button>
         )}
+        {!baru && !sudahAjukan && (konfirmasi ? (
+          <>
+            <button type="button" className="btn at-bahaya" disabled={sibuk} onClick={hapus}>Ya, hapus draf ini</button>
+            <button type="button" className="btn btn-ghost" disabled={sibuk} onClick={() => setKonfirmasi(false)}>Batal</button>
+          </>
+        ) : (
+          <button type="button" className="btn btn-ghost at-hapus-btn" disabled={sibuk} onClick={() => setKonfirmasi(true)}>Hapus draf</button>
+        ))}
       </div>
     </div>
   );
@@ -74,33 +93,57 @@ function FormDraf({
 
 export function TulisSaya({ rubrik, awal }: { rubrik: Rubrik[]; awal: TulisanSaya[] }) {
   const rubrikAwal = rubrik[0]?.slug ?? '';
+  const urutan = STATUS_TULISAN;
+  const grup = urutan
+    .map((st) => ({ st, daftar: awal.filter((t) => t.status === st) }))
+    .filter((g) => g.daftar.length > 0);
   return (
     <>
-      <section className="card pad" style={{ marginTop: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Tulisan baru</h2>
-        <FormDraf rubrik={rubrik} awal={{ judul: '', rubrikSlug: rubrikAwal, isi: '' }} />
-      </section>
+      <details className="lipat card" open={awal.length === 0}>
+        <summary className="lipat-kepala"><span>Tulisan baru</span><span className="lipat-hint">Klik untuk membuka formulir</span></summary>
+        <div className="lipat-isi">
+          <FormDraf rubrik={rubrik} awal={{ judul: '', rubrikSlug: rubrikAwal, isi: '' }} />
+        </div>
+      </details>
 
-      <h2 style={{ marginTop: 28 }}>Tulisanku</h2>
+      <h2 style={{ marginTop: 28 }}>Tulisanku <span className="muted" style={{ fontSize: 15 }}>({awal.length})</span></h2>
       {awal.length === 0 ? (
         <p className="muted">Belum ada tulisan. Mulai dari formulir di atas.</p>
       ) : (
-        <div style={{ display: 'grid', gap: 14 }}>
-          {awal.map((t) => (
-            <article key={t.id} className="card pad">
-              <div className="tagl">{t.rubrik} · {KOLOM[t.status].judul}</div>
-              {t.status === 'draf' ? (
-                <FormDraf rubrik={rubrik} id={t.id} awal={{ judul: t.judul, rubrikSlug: t.rubrikSlug, isi: t.isi }} />
-              ) : (
-                <>
-                  <h3 style={{ margin: '8px 0' }}>{t.judul}</h3>
-                  <p className="muted">
-                    {KOLOM[t.status].deskripsi}. Tulisan yang sudah diajukan tidak bisa diubah dari sini; hubungi editor jika perlu perubahan.
-                  </p>
-                </>
-              )}
-            </article>
-          ))}
+        <div className="lipat-daftar">
+          {grup.map(({ st, daftar }) => {
+            const adaCatatan = daftar.some((t) => t.catatanRevisi && t.status !== 'terbit');
+            return (
+              <details key={st} className="lipat card" open={st === 'draf' || adaCatatan}>
+                <summary className="lipat-kepala">
+                  <span>{KOLOM[st].nomor} · {KOLOM[st].judul}</span>
+                  <span className="lipat-jumlah">{daftar.length}{adaCatatan ? ' · ada catatan' : ''}</span>
+                </summary>
+                <div className="lipat-isi lipat-anak">
+                  {daftar.map((t) => (
+                    <details key={t.id} className="lipat lipat-item" open={Boolean(t.catatanRevisi) && t.status === 'draf'}>
+                      <summary className="lipat-kepala lipat-kecil">
+                        <span className="lipat-judul">{t.judul}</span>
+                        <span className="lipat-hint">{t.rubrik}</span>
+                      </summary>
+                      <div className="lipat-isi">
+                        {t.catatanRevisi && t.status !== 'terbit' && (
+                          <div className="warn" role="note"><strong>Catatan dari redaksi:</strong> {t.catatanRevisi}</div>
+                        )}
+                        {t.status === 'draf' ? (
+                          <FormDraf rubrik={rubrik} id={t.id} awal={{ judul: t.judul, rubrikSlug: t.rubrikSlug, isi: t.isi }} />
+                        ) : (
+                          <p className="muted" style={{ margin: 0 }}>
+                            {KOLOM[t.status].deskripsi}. Tulisan yang sudah diajukan tidak bisa diubah dari sini; hubungi editor jika perlu perubahan.
+                          </p>
+                        )}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </details>
+            );
+          })}
         </div>
       )}
     </>

@@ -13,7 +13,7 @@ export default async function HalamanLaporan() {
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · moderasi</div>
-      <p className="muted"><Link href="/redaksi/komentar">← Komentar dan laporan</Link></p>
+      <p className="muted"><Link href="/redaksi/komentar" className="kembali">← Komentar dan laporan</Link></p>
       <h1>Laporan konten</h1>
       <p className="muted">Laporan dari pengunjung lewat halaman Lapor konten. Laporan baru tampil paling atas.</p>
       <ModerasiLaporan awal={awal} />

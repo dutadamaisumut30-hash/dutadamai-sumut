@@ -12,7 +12,7 @@ export default async function HalamanKomentar() {
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · moderasi</div>
-      <p className="muted"><Link href="/redaksi/admin">← Admin redaksi</Link></p>
+      <p className="muted"><Link href="/redaksi" className="kembali">← Papan alur redaksi</Link></p>
       <h1>Komentar dan laporan</h1>
       <p className="muted">Komentar dengan laporan terbanyak tampil paling atas. <Link href="/redaksi/laporan">Lihat laporan konten dari pengunjung →</Link></p>
       <ModerasiKomentar awal={awal} />

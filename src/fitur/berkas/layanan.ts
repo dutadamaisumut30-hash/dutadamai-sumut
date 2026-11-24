@@ -1,9 +1,10 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { berkas, tulisan } from '@/lib/db/schema';
 import { catatAudit } from '@/lib/audit';
 import type { Peran } from '@/lib/izin';
-import { cocokSignature, MIME_IZIN, simpanBerkas, UKURAN_MAKS } from '@/lib/penyimpanan';
+import { bolehAksi } from '@/lib/izin';
+import { cocokSignature, hapusBerkas, MIME_IZIN, simpanBerkas, UKURAN_MAKS } from '@/lib/penyimpanan';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = PgDatabase<any, any, any>;
@@ -56,5 +57,32 @@ export async function unggahBerkasTulisan(
     return { ok: true };
   } catch {
     return { ok: false, pesan: 'Berkas belum tersimpan. Coba lagi beberapa saat lagi.' };
+  }
+}
+
+/** Gambar sampul terbaru (PNG/JPG) dari tulisan yang sudah terbit. PDF tidak dipakai sebagai sampul. */
+export async function ambilSampul(db: Db, slug: string): Promise<{ lokasi: string; jenisMime: string } | null> {
+  const [b] = await db
+    .select({ lokasi: berkas.lokasi, jenisMime: berkas.jenisMime })
+    .from(berkas)
+    .innerJoin(tulisan, eq(berkas.tulisanId, tulisan.id))
+    .where(and(eq(tulisan.slug, slug), eq(tulisan.status, 'terbit'), inArray(berkas.jenisMime, ['image/png', 'image/jpeg'])))
+    .orderBy(desc(berkas.pada))
+    .limit(1);
+  return b ?? null;
+}
+
+/** Menghapus berkas desain tulisan (misalnya cover yang salah). Hanya DKV, Editor, dan Admin. Berkas karya publik tidak bisa dihapus dari sini. */
+export async function hapusBerkasTulisan(db: Db, id: string, peran: Peran): Promise<Hasil> {
+  if (!bolehAksi(peran, 'unggah_desain')) return { ok: false, pesan: 'Hanya DKV, Editor, dan Admin yang boleh menghapus berkas desain.' };
+  try {
+    const [b] = await db.select({ id: berkas.id, lokasi: berkas.lokasi, tulisanId: berkas.tulisanId, namaAsli: berkas.namaAsli }).from(berkas).where(eq(berkas.id, id));
+    if (!b || !b.tulisanId) return { ok: false, pesan: 'Berkas tidak ditemukan.' };
+    await db.delete(berkas).where(eq(berkas.id, id));
+    await hapusBerkas(b.lokasi);
+    await catatAudit(db, { peran, aksi: 'hapus_berkas', objek: 'tulisan', objekId: b.tulisanId, catatan: String(b.namaAsli).slice(0, 120) });
+    return { ok: true };
+  } catch {
+    return { ok: false, pesan: 'Berkas belum terhapus. Coba lagi.' };
   }
 }

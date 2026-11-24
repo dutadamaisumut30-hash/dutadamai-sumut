@@ -48,7 +48,7 @@ export async function ambilTerbit(db: Db, slug: string): Promise<TulisanTerbit |
 
 export async function ambilKomentarTampil(db: Db, tulisanId: string) {
   return db
-    .select({ id: komentar.id, nama: komentar.namaPengirim, isi: komentar.isi })
+    .select({ id: komentar.id, nama: komentar.namaPengirim, isi: komentar.isi, dibuatPada: komentar.dibuatPada })
     .from(komentar)
     .where(and(eq(komentar.tulisanId, tulisanId), eq(komentar.status, 'tampil')))
     .orderBy(desc(komentar.dibuatPada));
@@ -80,6 +80,9 @@ export interface KomentarModerasi {
   status: StatusKomentar;
   laporan: number;
   judul: string;
+  slug: string;
+  diterima: string;
+  tulisanTerbit: boolean;
 }
 
 export async function ambilSemuaKomentar(db: Db): Promise<KomentarModerasi[]> {
@@ -91,11 +94,19 @@ export async function ambilSemuaKomentar(db: Db): Promise<KomentarModerasi[]> {
       status: komentar.status,
       laporan: komentar.laporan,
       judul: tulisan.judul,
+      slug: tulisan.slug,
+      statusTulisan: tulisan.status,
+      dibuatPada: komentar.dibuatPada,
     })
     .from(komentar)
     .innerJoin(tulisan, eq(komentar.tulisanId, tulisan.id))
     .orderBy(desc(komentar.laporan), desc(komentar.dibuatPada));
-  return baris.map((b) => ({ ...b, status: b.status as StatusKomentar }));
+  return baris.map(({ statusTulisan, dibuatPada, ...b }) => ({
+    ...b,
+    status: b.status as StatusKomentar,
+    tulisanTerbit: statusTulisan === 'terbit',
+    diterima: new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).format(dibuatPada),
+  }));
 }
 
 export async function ubahStatusKomentar(

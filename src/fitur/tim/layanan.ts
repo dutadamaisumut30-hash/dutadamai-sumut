@@ -2,13 +2,13 @@ import { asc, eq } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { anggotaTim } from '@/lib/db/schema';
 import { catatAudit } from '@/lib/audit';
-import type { Peran } from '@/lib/izin';
+import { bolehAksi, type Peran } from '@/lib/izin';
 import { DIVISI_AWAL, validasiAnggota, type AnggotaTim, type HasilTim } from './tim';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = PgDatabase<any, any, any>;
 
-export type PatchAnggota = { peran?: string; divisi?: string; tampil?: boolean };
+export type PatchAnggota = { nama?: string; peran?: string; divisi?: string; tampil?: boolean };
 
 const kolom = {
   id: anggotaTim.id,
@@ -57,7 +57,11 @@ export async function tambahAnggota(
 }
 
 export async function ubahAnggota(db: Db, id: string, patch: PatchAnggota, pelaku: Peran): Promise<HasilTim> {
-  const set: { peran?: string; divisi?: string; tampil?: boolean } = {};
+  const set: { nama?: string; peran?: string; divisi?: string; tampil?: boolean } = {};
+  if (patch.nama !== undefined) {
+    if (!patch.nama.trim()) return { ok: false, alasan: 'Nama wajib diisi.' };
+    set.nama = patch.nama.trim();
+  }
   if (patch.peran !== undefined) {
     if (!patch.peran.trim()) return { ok: false, alasan: 'Peran wajib diisi.' };
     set.peran = patch.peran.trim();
@@ -82,5 +86,24 @@ export async function ubahAnggota(db: Db, id: string, patch: PatchAnggota, pelak
     return { ok: true };
   } catch {
     return { ok: false, alasan: 'Perubahan belum tersimpan. Coba lagi.' };
+  }
+}
+
+// Hapus permanen. Hanya Admin. Untuk menyembunyikan sementara, pakai ubahAnggota({ tampil: false }).
+export async function hapusAnggota(db: Db, id: string, pelaku: Peran): Promise<HasilTim> {
+  if (!bolehAksi(pelaku, 'kelola_tim')) return { ok: false, alasan: 'Akun tim hanya bisa dikelola Admin.' };
+  try {
+    const [b] = await db.delete(anggotaTim).where(eq(anggotaTim.id, id)).returning({ id: anggotaTim.id, nama: anggotaTim.nama });
+    if (!b) return { ok: false, alasan: 'Anggota tidak ditemukan.' };
+    await catatAudit(db, {
+      peran: pelaku,
+      aksi: 'hapus_anggota_tim',
+      objek: 'anggota_tim',
+      objekId: id,
+      catatan: b.nama.slice(0, 120),
+    });
+    return { ok: true };
+  } catch {
+    return { ok: false, alasan: 'Anggota belum terhapus. Coba lagi.' };
   }
 }

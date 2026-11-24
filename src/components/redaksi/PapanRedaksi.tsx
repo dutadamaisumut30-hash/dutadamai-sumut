@@ -7,6 +7,15 @@ import { gantiStatus } from '@/fitur/tulisan/actions';
 import type { ItemPapanDb } from '@/fitur/tulisan/layanan';
 import { adalahMundur, formatTanggalPendek, KOLOM, labelTelat } from '@/fitur/tulisan/papan';
 
+
+// Penanggung bisa tersimpan sebagai nama lengkap atau inisial. Selalu tampilkan maksimal dua huruf.
+function inisial(nama: string): string {
+  const kata = nama.trim().split(/\s+/).filter(Boolean);
+  if (kata.length === 0) return '?';
+  if (kata.length === 1) return kata[0].slice(0, 2).toUpperCase();
+  return (kata[0][0] + kata[kata.length - 1][0]).toUpperCase();
+}
+
 type MundurTertunda = { id: string; ke: StatusTulisan } | null;
 
 export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: string }) {
@@ -45,6 +54,11 @@ export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: 
   function pindahkan(id: string, ke: StatusTulisan) {
     const item = cariItem(id);
     if (!item || item.status === ke) return;
+    if (STATUS_TULISAN.indexOf(ke) - STATUS_TULISAN.indexOf(item.status) > 1) {
+      setMundur(null);
+      setPesan('Status tidak boleh dilompati. Pindahkan satu langkah ke kolom berikutnya.');
+      return;
+    }
     if (adalahMundur(item.status, ke)) {
       setMundur({ id, ke });
       setCatatan('');
@@ -66,6 +80,10 @@ export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: 
 
   return (
     <>
+      <p style={{ margin: '0 0 12px' }}>
+        <Link href="/redaksi/tulis" className="btn">+ Tulis draf baru</Link>{' '}
+        <span className="muted">Draf baru dibuat di Tulisanku, lalu otomatis muncul di kolom Draf papan ini.</span>
+      </p>
       <div className="papan-ringkas">
         <div className="card pad"><div className="muted">Sedang dikerjakan</div><h2>{sedangDikerjakan}</h2></div>
         <div className="card pad"><div className="muted">Terbit</div><h2>{terbit}</h2></div>
@@ -79,7 +97,7 @@ export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: 
 
       {mundur && itemMundur && (
         <div className="papan-catatan" role="group" aria-label="Catatan pengembalian">
-          <strong>Kembalikan &quot;{itemMundur.judul}&quot; ke {KOLOM[mundur.ke].judul}</strong>
+          <strong>{itemMundur.status === 'terbit' ? 'Tarik dari terbit' : 'Kembalikan'} &quot;{itemMundur.judul}&quot; ke {KOLOM[mundur.ke].judul}</strong>
           <label htmlFor="catatan-mundur">Catatan wajib (misalnya: bagian kutipan belum jelas)</label>
           <textarea id="catatan-mundur" rows={3} value={catatan} onChange={(e) => setCatatan(e.target.value)} />
           <button type="button" className="btn" onClick={kembalikanDenganCatatan} disabled={!catatan.trim() || sibuk}>
@@ -118,12 +136,15 @@ export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: 
                 >
                   <span className="tagl">{i.rubrik}</span>
                   <p style={{ margin: '6px 0' }}><Link href={`/redaksi/tulisan/${i.id}`}>{i.judul}</Link></p>
-                  <div>
-                    {i.penanggung.map((p) => <span key={p} className="av">{p}</span>)}{' '}
+                  <div className="kc-meta">
+                    <span className="av-grup">
+                      {i.penanggung.map((p) => <span key={p} className="av" title={p}>{inisial(p)}</span>)}
+                    </span>
                     {telatLabel
-                      ? <span style={{ color: 'var(--red)', fontWeight: 700 }}>{telatLabel}</span>
-                      : <span className="muted">Tenggat {formatTanggalPendek(i.tenggat)}</span>}
+                      ? <span className="kc-telat">{telatLabel}</span>
+                      : <span className="muted kc-tenggat">Tenggat {formatTanggalPendek(i.tenggat)}</span>}
                   </div>
+                  <Link href={`/redaksi/tulisan/${i.id}`} className="kc-kelola">Detail, cover, atau hapus →</Link>
                   <label className="papan-pindah">
                     <span className="muted">Pindah ke</span>
                     <select
@@ -132,9 +153,14 @@ export function PapanRedaksi({ awal, hariIni }: { awal: ItemPapanDb[]; hariIni: 
                       disabled={sibuk}
                       onChange={(e) => pindahkan(i.id, e.target.value as StatusTulisan)}
                     >
-                      {STATUS_TULISAN.map((s) => (
-                        <option key={s} value={s}>{KOLOM[s].nomor} · {KOLOM[s].judul}</option>
-                      ))}
+                      {STATUS_TULISAN.map((s) => {
+                        const selisih = STATUS_TULISAN.indexOf(s) - STATUS_TULISAN.indexOf(i.status);
+                        // Maju hanya satu langkah. Mundur ke status mana pun boleh (dengan catatan wajib).
+                        const boleh = selisih <= 1;
+                        return (
+                          <option key={s} value={s} disabled={!boleh}>{KOLOM[s].nomor} · {KOLOM[s].judul}</option>
+                        );
+                      })}
                     </select>
                   </label>
                 </div>

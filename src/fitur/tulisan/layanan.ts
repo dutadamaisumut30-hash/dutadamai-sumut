@@ -1,7 +1,7 @@
 // Logika papan redaksi di database. Aturan perpindahan tetap di alur-status.ts.
-import { eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
-import { rubrik, tulisan } from '@/lib/db/schema';
+import { logAudit, rubrik, tulisan } from '@/lib/db/schema';
 import { catatAudit } from '@/lib/audit';
 import type { Peran } from '@/lib/izin';
 import { pindahStatus, type StatusTulisan } from './alur-status';
@@ -77,5 +77,41 @@ export async function ambilTulisan(db: Db, id: string): Promise<ItemPapanDb | nu
   } catch {
     // ID yang bukan UUID juga jatuh ke sini, dan diperlakukan sebagai tidak ditemukan.
     return null;
+  }
+}
+
+/** Isi tulisan untuk dibaca di halaman detail redaksi. */
+export async function ambilIsiTulisan(db: Db, id: string): Promise<string> {
+  try {
+    const [b] = await db.select({ isi: tulisan.isi }).from(tulisan).where(eq(tulisan.id, id));
+    return b?.isi ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Catatan terakhir dari editor saat tulisan dikembalikan atau ditarik. Diambil dari log audit:
+ * perpindahan maju tidak punya catatan, jadi hanya perpindahan terakhir yang bercatatan yang dianggap aktif.
+ */
+export async function ambilCatatanRevisi(db: Db, ids: string[]): Promise<Record<string, string>> {
+  if (ids.length === 0) return {};
+  try {
+    const baris = await db
+      .select({ objekId: logAudit.objekId, catatan: logAudit.catatan })
+      .from(logAudit)
+      .where(inArray(logAudit.objekId, ids))
+      .orderBy(desc(logAudit.pada));
+    const hasil: Record<string, string> = {};
+    const sudah = new Set<string>();
+    for (const b of baris as { objekId: string | null; catatan: string | null }[]) {
+      if (!b.objekId || !b.catatan || !b.catatan.includes(' -> ') || sudah.has(b.objekId)) continue;
+      sudah.add(b.objekId);
+      const i = b.catatan.indexOf(': ');
+      if (i > -1) hasil[b.objekId] = b.catatan.slice(i + 2);
+    }
+    return hasil;
+  } catch {
+    return {};
   }
 }

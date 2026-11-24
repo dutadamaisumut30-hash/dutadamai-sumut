@@ -18,6 +18,9 @@ export function buatAuth(opsi: {
     database: drizzleAdapter(opsi.db as never, { provider: 'pg', schema: opsi.schema }),
     secret: opsi.secret,
     baseURL: opsi.baseURL,
+    trustedOrigins: (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '').split(',').map((x) => x.trim()).filter(Boolean),
+    // Batasi tebakan kata sandi: 5 percobaan masuk per menit per alamat IP (aktif di produksi).
+    rateLimit: { window: 60, max: 60, customRules: { '/sign-in/email': { window: 60, max: 5 }, '/two-factor/verify-totp': { window: 60, max: 5 } } },
     emailAndPassword: { enabled: true, minPasswordLength: 12, disableSignUp: !opsi.izinDaftar },
     plugins: [twoFactor({ issuer: 'DutaDamai Sumut' })],
     user: {

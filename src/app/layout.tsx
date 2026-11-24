@@ -9,6 +9,7 @@ const serif = Source_Serif_4({ subsets: ['latin'], variable: '--font-serif', dis
 export const metadata: Metadata = {
   title: { default: 'DutaDamai Sumut', template: '%s · DutaDamai Sumut' },
   description: 'Kabar baik dan karya anak muda Sumut dari Duta Damai Sumatera Utara.',
+  alternates: { types: { 'application/rss+xml': '/feed.xml' } },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

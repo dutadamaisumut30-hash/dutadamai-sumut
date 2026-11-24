@@ -31,7 +31,22 @@ export function EfekScroll() {
       gsap.ticker.lagSmoothing(0);
     }
 
-    function siapkan() {
+    let pantau: ReturnType<typeof setTimeout> | null = null;
+
+    // React menandai tiap elemen yang sudah dihidrasi dengan kunci __reactFiber$.
+    // Konten halaman bisa dihidrasi lebih lambat dari template, jadi kita tunggu sampai semua target siap.
+    const sudahHidrasi = (el: Element) => Object.keys(el).some((k) => k.startsWith('__reactFiber$'));
+    const semuaHidrasi = () =>
+      Array.from(document.querySelectorAll('main .sec, main .grid3 > *, main .hero .ring')).every(sudahHidrasi) &&
+      !document.querySelector('main .kerangka');
+
+    function siapkan(coba = 0) {
+      if (pantau) clearTimeout(pantau);
+      if (!semuaHidrasi()) {
+        // Maksimal ~6 detik; setelah itu efek dilewati daripada mengubah DOM yang belum dihidrasi.
+        if (coba < 120) pantau = setTimeout(() => siapkan(coba + 1), 50);
+        return;
+      }
       ctx?.revert();
       ctx = null;
       lenis?.scrollTo(0, { immediate: true });
@@ -71,11 +86,13 @@ export function EfekScroll() {
       });
     }
 
-    window.addEventListener('halaman-siap', siapkan);
-    if (window.__halamanSiap) siapkan();
+    const mulai = () => siapkan(0);
+    window.addEventListener('halaman-siap', mulai);
+    if (window.__halamanSiap) mulai();
 
     return () => {
-      window.removeEventListener('halaman-siap', siapkan);
+      window.removeEventListener('halaman-siap', mulai);
+      if (pantau) clearTimeout(pantau);
       ctx?.revert();
       if (tick) gsap.ticker.remove(tick);
       lenis?.destroy();

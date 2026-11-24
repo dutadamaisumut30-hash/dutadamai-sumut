@@ -2,7 +2,8 @@ import { desc, eq, inArray } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { berkas, karya } from '@/lib/db/schema';
 import { catatAudit } from '@/lib/audit';
-import type { Peran } from '@/lib/izin';
+import { bolehAksi, type Peran } from '@/lib/izin';
+import { dekripsiKontak } from '@/lib/kripto-kontak';
 import type { TahapKarya } from './alur-seleksi';
 import { tanggalHapusKontak } from './kontak-retensi';
 import { pindahSeleksi, type HasilSeleksi } from './pindah-seleksi';
@@ -18,6 +19,7 @@ export interface KaryaMasukDb {
   diterima: string;
   tahap: TahapKarya;
   catatan?: string;
+  isi?: string;
   berkas: { id: string; namaAsli: string }[];
 }
 
@@ -28,7 +30,7 @@ function tanggalPendek(d: Date): string {
 /** Semua karya masuk, terbaru dulu. Data kontak pengirim tidak diambil. */
 export async function ambilKaryaMasuk(db: Db): Promise<KaryaMasukDb[]> {
   const baris = await db
-    .select({ id: karya.id, judul: karya.judul, jenis: karya.jenis, oleh: karya.oleh, tahap: karya.tahap, catatan: karya.catatan, dibuatPada: karya.dibuatPada })
+    .select({ id: karya.id, judul: karya.judul, jenis: karya.jenis, oleh: karya.oleh, tahap: karya.tahap, catatan: karya.catatan, isi: karya.isi, dibuatPada: karya.dibuatPada })
     .from(karya)
     .orderBy(desc(karya.dibuatPada));
   if (baris.length === 0) return [];
@@ -47,6 +49,7 @@ export async function ambilKaryaMasuk(db: Db): Promise<KaryaMasukDb[]> {
     diterima: tanggalPendek(b.dibuatPada),
     tahap: b.tahap,
     catatan: b.catatan ?? undefined,
+    isi: b.isi ?? undefined,
     berkas: files.filter((f: any) => f.karyaId === b.id).map((f: any) => ({ id: f.id, namaAsli: f.namaAsli })),
   }));
 }
@@ -91,5 +94,30 @@ export async function gantiTahapKarya(
     return { ok: true };
   } catch {
     return { ok: false, alasan: 'Perubahan belum tersimpan. Coba lagi.' };
+  }
+}
+
+export type HasilKontak =
+  | { ok: true; kontak: string; namaLengkap: string | null; sekolah: string | null }
+  | { ok: false; alasan: string };
+
+/**
+ * Membuka kontak pengirim untuk dihubungi. Hanya Editor/Admin, hanya saat karya sudah dinyatakan layak
+ * (tahap dihubungi) atau dikembalikan, dan setiap pembukaan dicatat di log audit.
+ */
+export async function bacaKontakKarya(db: Db, id: string, kunci: Buffer, peran: Peran): Promise<HasilKontak> {
+  if (!bolehAksi(peran, 'seleksi_karya')) return { ok: false, alasan: 'Hanya Editor dan Admin yang boleh membuka kontak.' };
+  try {
+    const [k] = await db.select({ tahap: karya.tahap, kontak: karya.kontakTerenkripsi }).from(karya).where(eq(karya.id, id));
+    if (!k) return { ok: false, alasan: 'Karya tidak ditemukan.' };
+    if (k.tahap !== 'dihubungi' && k.tahap !== 'dikembalikan') {
+      return { ok: false, alasan: 'Kontak hanya dibuka setelah karya dinyatakan layak atau dikembalikan.' };
+    }
+    if (!k.kontak) return { ok: false, alasan: 'Kontak sudah dihapus sesuai kebijakan retensi (30 hari).' };
+    const data = JSON.parse(dekripsiKontak(k.kontak, kunci)) as { kontak: string; namaLengkap?: string | null; sekolah?: string | null };
+    await catatAudit(db, { peran, aksi: 'baca_kontak_karya', objek: 'karya', objekId: id });
+    return { ok: true, kontak: data.kontak, namaLengkap: data.namaLengkap ?? null, sekolah: data.sekolah ?? null };
+  } catch {
+    return { ok: false, alasan: 'Kontak tidak bisa dibuka. Cek kunci enkripsi di server.' };
   }
 }

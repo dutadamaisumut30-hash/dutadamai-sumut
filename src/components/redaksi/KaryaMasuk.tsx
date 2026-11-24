@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import type { TahapKarya } from '@/fitur/karya/alur-seleksi';
-import { gantiTahapKaryaAksi } from '@/fitur/karya/actions-seleksi';
+import { bacaKontakKaryaAksi, gantiTahapKaryaAksi } from '@/fitur/karya/actions-seleksi';
 import type { KaryaMasukDb } from '@/fitur/karya/seleksi';
 
 const LABEL: Record<TahapKarya, string> = {
@@ -17,7 +17,16 @@ export function KaryaMasuk({ awal }: { awal: KaryaMasukDb[] }) {
   const [pesan, setPesan] = useState('');
   const [kembali, setKembali] = useState<string | null>(null);
   const [catatan, setCatatan] = useState('');
+  const [kontak, setKontak] = useState<Record<string, string>>({});
   const [sibuk, mulai] = useTransition();
+
+  function bukaKontak(id: string) {
+    mulai(async () => {
+      const h = await bacaKontakKaryaAksi(id);
+      if (!h.ok) return setPesan(h.alasan);
+      setKontak((k) => ({ ...k, [id]: [h.kontak, h.namaLengkap, h.sekolah].filter(Boolean).join(' · ') }));
+    });
+  }
 
   function pindah(id: string, judul: string, ke: TahapKarya, catatanIsi?: string) {
     mulai(async () => {
@@ -42,6 +51,21 @@ export function KaryaMasuk({ awal }: { awal: KaryaMasukDb[] }) {
             <h3 style={{ margin: '6px 0' }}>{i.judul}</h3>
             <p className="muted" style={{ margin: 0 }}>oleh {i.oleh} · {LABEL[i.tahap]}</p>
             {i.catatan && <p style={{ marginTop: 6 }}>Catatan: {i.catatan}</p>}
+
+            {i.isi && (
+              <details style={{ marginTop: 8 }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Baca isi karya</summary>
+                {i.isi.split(/\n\s*\n/).map((p, n) => <p key={n} style={{ margin: '8px 0', whiteSpace: 'pre-line' }}>{p}</p>)}
+              </details>
+            )}
+
+            {(i.tahap === 'dihubungi' || i.tahap === 'dikembalikan') && (
+              <p style={{ marginTop: 8 }}>
+                {kontak[i.id]
+                  ? <><strong>Kontak:</strong> {kontak[i.id]}</>
+                  : <button type="button" className="btn btn-ghost" disabled={sibuk} onClick={() => bukaKontak(i.id)}>Tampilkan kontak pengirim</button>}
+              </p>
+            )}
 
             {i.berkas.length > 0 && (
               <div style={{ marginTop: 8 }}>

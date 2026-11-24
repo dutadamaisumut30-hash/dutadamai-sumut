@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { dbTunggal } from '@/lib/db/tunggal';
 import { bolehAksi, PERAN, type Peran } from '@/lib/izin';
-import { unggahBerkasTulisan } from './layanan';
+import { hapusBerkasTulisan, unggahBerkasTulisan } from './layanan';
 
 export async function unggahDesainTulisan(formData: FormData): Promise<{ ok: true } | { ok: false; pesan: string }> {
   const sesi = await auth.api.getSession({ headers: await headers() });
@@ -28,4 +28,13 @@ export async function unggahDesainTulisan(formData: FormData): Promise<{ ok: tru
     isi,
     peran: peran as Peran,
   });
+}
+
+export async function hapusBerkasAksi(id: string): Promise<{ ok: true } | { ok: false; pesan: string }> {
+  const sesi = await auth.api.getSession({ headers: await headers() });
+  const peran = sesi?.user.peran as string | null | undefined;
+  if (!peran || !(PERAN as readonly string[]).includes(peran)) return { ok: false, pesan: 'Tidak diizinkan.' };
+  const url = process.env.DATABASE_URL;
+  if (!url) return { ok: false, pesan: 'Server belum dikonfigurasi. Hubungi tim IT.' };
+  return hapusBerkasTulisan(dbTunggal(url), id, peran as Peran);
 }

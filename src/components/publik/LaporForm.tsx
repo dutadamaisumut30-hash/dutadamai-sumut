@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { kirimLaporan } from '@/fitur/laporan/actions';
-import { Turnstile } from './Turnstile';
+import { KeteranganVerifikasi, Turnstile } from './Turnstile';
 
 const ALASAN = ['Ujaran kebencian atau SARA', 'Data pribadi orang lain', 'Promosi atau spam', 'Lainnya'] as const;
 
@@ -37,6 +37,7 @@ export function LaporForm() {
       <label htmlFor="lc">Catatan{alasan === 'Lainnya' ? '' : ' (opsional)'}</label>
       <textarea id="lc" rows={4} value={catatan} onChange={(e) => setCatatan(e.target.value)} />
       <Turnstile onToken={setTurnstile} />
+      <KeteranganVerifikasi token={turnstile} sibuk={pending} />
       <div className="err">{err}</div>
       <button type="button" className="btn" onClick={kirim} disabled={pending || !turnstile}>
         {pending ? 'Mengirim…' : 'Kirim laporan'}

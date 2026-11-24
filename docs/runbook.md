@@ -63,3 +63,13 @@ Backup tersimpan di VPS yang sama. Salin berkala ke tempat lain (komputer pembin
 
 - Hilang: kontak pengirim yang sudah tersimpan tidak bisa dibaca lagi. Kontak baru tetap aman dengan kunci baru.
 - Bocor: buat kunci baru dan ganti di `produksi.env`. Kontak lama perlu dienkripsi ulang, jadi hubungi pengembang.
+
+## Sebelum tayang (daftar cek keamanan)
+
+- `docker/produksi.env` TIDAK berisi `WAJIB_2FA=0`, `NEXT_PUBLIC_MODE_UJI`, atau `NEXT_PUBLIC_SANDI_UJI`.
+- Akun uji (`*.uji@contoh.test`) tidak ada di database produksi.
+- Admin dan Editor sudah mengaktifkan 2FA. Di produksi, mereka dialihkan ke /akun/keamanan sampai 2FA aktif.
+- Kunci Turnstile adalah kunci asli untuk domain (bukan kunci uji `1x0000...`).
+- `NEXT_PUBLIC_SITE_URL` dan `BETTER_AUTH_URL` memakai https dan domain asli. Cek `https://domain/sitemap.xml`, `/robots.txt`, dan `/feed.xml`.
+- Cek header: `curl -sI https://domain | grep -i "content-security-policy\|strict-transport"`. Lalu buka beranda, login, kirim komentar (Turnstile), dan unggah cover untuk memastikan CSP tidak memblokir apa pun.
+- Backup dan penghapusan kontak sudah ada di crontab, dan log hari pertama sudah dicek.

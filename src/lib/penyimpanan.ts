@@ -23,7 +23,8 @@ export function cocokSignature(isi: Buffer, mime: string): boolean {
 }
 
 function folderPenyimpanan(): string {
-  return process.env.PENYIMPANAN_DIR || path.join(process.cwd(), 'penyimpanan');
+  // Folder ditentukan saat berjalan (bukan saat build), jadi pelacakan statis Turbopack sengaja diabaikan.
+  return process.env.PENYIMPANAN_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), 'penyimpanan');
 }
 
 /** Menyimpan isi berkas dengan nama acak. Mengembalikan nama berkas di folder penyimpanan. */
@@ -31,17 +32,17 @@ export async function simpanBerkas(isi: Buffer, mime: string): Promise<string> {
   const ext = MIME_IZIN[mime];
   const nama = `${randomUUID()}.${ext}`;
   await mkdir(folderPenyimpanan(), { recursive: true });
-  await writeFile(path.join(folderPenyimpanan(), nama), isi);
+  await writeFile(path.join(/*turbopackIgnore: true*/ folderPenyimpanan(), nama), isi);
   return nama;
 }
 
 export async function bacaBerkas(lokasi: string): Promise<Buffer> {
   if (!/^[0-9a-f-]{36}\.(png|jpg|pdf)$/.test(lokasi)) throw new Error('Lokasi berkas tidak valid.');
-  return readFile(path.join(folderPenyimpanan(), lokasi));
+  return readFile(path.join(/*turbopackIgnore: true*/ folderPenyimpanan(), lokasi));
 }
 
 /** Menghapus berkas yang sudah tersimpan. Dipakai saat penyimpanan ke database gagal. */
 export async function hapusBerkas(lokasi: string): Promise<void> {
   if (!/^[0-9a-f-]{36}\.(png|jpg|pdf)$/.test(lokasi)) return;
-  await unlink(path.join(folderPenyimpanan(), lokasi)).catch(() => {});
+  await unlink(path.join(/*turbopackIgnore: true*/ folderPenyimpanan(), lokasi)).catch(() => {});
 }

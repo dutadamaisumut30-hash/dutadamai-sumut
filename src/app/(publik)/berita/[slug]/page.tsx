@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BagikanTulisan } from '@/components/publik/BagikanTulisan';
 import { KomentarForm } from '@/components/publik/KomentarForm';
+import { ambilSampul } from '@/fitur/berkas/layanan';
 import { ambilKomentarTampil, ambilTerbit } from '@/fitur/komentar/layanan';
 import { dbTunggal } from '@/lib/db/tunggal';
 
@@ -14,7 +15,8 @@ async function muat(slug: string) {
   const tulisan = await ambilTerbit(db, slug);
   if (!tulisan) return null;
   const komentar = await ambilKomentarTampil(db, tulisan.id);
-  return { tulisan, komentar };
+  const sampul = Boolean(await ambilSampul(db, slug).catch(() => null));
+  return { tulisan, komentar, sampul };
 }
 
 // Kartu bagikan: judul dan ringkasan ini dipakai saat tautan dibagikan di media sosial.
@@ -34,13 +36,21 @@ export default async function HalamanBerita({ params }: Props) {
   const { slug } = await params;
   const data = await muat(slug);
   if (!data) notFound();
-  const { tulisan, komentar } = data;
+  const { tulisan, komentar, sampul } = data;
 
   return (
     <section style={{ maxWidth: 720, margin: '0 auto' }}>
       <div className="tagl">{tulisan.rubrik}</div>
       <h1>{tulisan.judul}</h1>
       <p className="muted">Penanggung: {tulisan.penanggung.join(', ')}</p>
+      {sampul && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/api/sampul/${slug}`}
+          alt={`Sampul tulisan: ${tulisan.judul}`}
+          style={{ width: '100%', height: 'auto', borderRadius: 16, marginTop: 16 }}
+        />
+      )}
 
       <article className="isi-tulisan" style={{ marginTop: 20 }}>
         {tulisan.isi.split(/\n\s*\n/).map((paragraf, i) => (
@@ -51,14 +61,17 @@ export default async function HalamanBerita({ params }: Props) {
       <BagikanTulisan judul={tulisan.judul} />
 
       <section style={{ marginTop: 40 }}>
-        <h2>Komentar</h2>
+        <h2>Komentar{komentar.length > 0 && <span className="muted"> ({komentar.length})</span>}</h2>
         {komentar.length === 0 ? (
-          <p className="muted">Belum ada komentar.</p>
+          <p className="muted">Belum ada komentar. Jadilah yang pertama. Komentar baru tampil setelah ditinjau redaksi.</p>
         ) : (
           komentar.map((k) => (
             <div key={k.id} className="card pad" style={{ marginTop: 12 }}>
-              <strong>{k.nama}</strong>
-              <p style={{ margin: '6px 0 0' }}>{k.isi}</p>
+              <strong>{k.nama}</strong>{' '}
+              <span className="muted" style={{ fontSize: 13 }}>
+                · {new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(k.dibuatPada)}
+              </span>
+              <p style={{ margin: '6px 0 0', whiteSpace: 'pre-line' }}>{k.isi}</p>
             </div>
           ))
         )}

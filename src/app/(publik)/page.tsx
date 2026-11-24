@@ -21,10 +21,17 @@ export default async function Beranda() {
             <p className="muted">{utama.ringkasan}</p>
             <Link href={`/berita/${utama.slug}`} className="btn">Baca tulisan</Link>
           </div>
-          <div className="card ph ph-warm" aria-hidden="true">
-            <div className="ring" />
-            <b>Foto · DKV</b>
-          </div>
+          {utama.sampul ? (
+            <Link href={`/berita/${utama.slug}`} className="card ph hero-sampul" aria-label={`Baca: ${utama.judul}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/api/sampul/${utama.slug}`} alt={`Sampul tulisan: ${utama.judul}`} />
+            </Link>
+          ) : (
+            <div className="card ph ph-warm" aria-hidden="true">
+              <div className="ring" />
+              <b>Foto · DKV</b>
+            </div>
+          )}
         </section>
       ) : (
         <section>
@@ -38,7 +45,14 @@ export default async function Beranda() {
           <div className="grid3">
             {lainnya.slice(0, 6).map((t) => (
               <article key={t.slug} className="card">
-                <div className={`ph ${t.warna}`} />
+                {t.sampul ? (
+                  <Link href={`/berita/${t.slug}`} className="ph" aria-label={`Baca: ${t.judul}`} tabIndex={-1}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/api/sampul/${t.slug}`} alt="" loading="lazy" />
+                  </Link>
+                ) : (
+                  <div className={`ph ${t.warna}`} />
+                )}
                 <div className="pad">
                   <span className="tagl">{t.rubrik}</span>
                   <h3><Link href={`/berita/${t.slug}`}>{t.judul}</Link></h3>

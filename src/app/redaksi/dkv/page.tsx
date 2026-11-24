@@ -13,7 +13,7 @@ export default async function HalamanTugasDkv() {
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang redaksi · DKV</div>
-      <p className="muted"><Link href="/redaksi">← Papan alur redaksi</Link></p>
+      <p className="muted"><Link href="/akun/keamanan" className="kembali">← Akun</Link></p>
       <h1>Tugas desain</h1>
       <p className="muted">Ambil tugas dari daftar, lalu kirim ke Review akhir saat desain selesai.</p>
       <TugasDkv awal={awal} hariIni={hariIni} />

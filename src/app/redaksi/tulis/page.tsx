@@ -13,7 +13,7 @@ export default async function HalamanTulis() {
   return (
     <main className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
       <div className="kicker">Ruang tim · penulis</div>
-      <p className="muted"><Link href="/akun/keamanan">← Akun</Link></p>
+      <p className="muted"><Link href="/akun/keamanan" className="kembali">← Akun</Link></p>
       <h1>Tulisanku</h1>
       <p className="muted">Tulis draf, simpan, lalu ajukan ke desain. Setelah diajukan, DKV dan editor yang melanjutkan.</p>
       <TulisSaya rubrik={rubrik} awal={tulisan} />

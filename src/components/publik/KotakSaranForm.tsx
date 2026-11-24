@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { kirimSaran } from '@/fitur/saran/actions';
 import { BACKEND_SIAP } from '@/lib/status-sistem';
-import { Turnstile } from './Turnstile';
+import { KeteranganVerifikasi, Turnstile } from './Turnstile';
 
 const KATEGORI = ['Saran konten', 'Masalah teknis', 'Ide kolaborasi'] as const;
 
@@ -54,6 +54,7 @@ export function KotakSaranForm() {
       <label htmlFor="kontak">Email atau WhatsApp (opsional, kalau mau dibalas)</label>
       <input id="kontak" value={kontak} onChange={(e) => setKontak(e.target.value)} />
       <Turnstile onToken={setTurnstile} />
+      <KeteranganVerifikasi token={turnstile} sibuk={pending} />
       <div className="err">{err}</div>
       <button type="button" className="btn" onClick={kirim} disabled={pending || !BACKEND_SIAP || !turnstile}>
         {pending ? 'Mengirim…' : 'Kirim saran'}

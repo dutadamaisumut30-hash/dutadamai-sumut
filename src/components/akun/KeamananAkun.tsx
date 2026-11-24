@@ -4,7 +4,7 @@ import { useState } from 'react';
 import QRCode from 'qrcode';
 import { authClient } from '@/lib/auth-client';
 
-export function KeamananAkun({ email, sudahAktif }: { email: string; sudahAktif: boolean }) {
+export function KeamananAkun({ sudahAktif }: { sudahAktif: boolean }) {
   const [aktif, setAktif] = useState(sudahAktif);
   const [password, setPassword] = useState('');
   const [kode, setKode] = useState('');
@@ -69,8 +69,7 @@ export function KeamananAkun({ email, sudahAktif }: { email: string; sudahAktif:
   return (
     <>
     <section className="card pad" style={{ maxWidth: 560 }}>
-      <p className="muted">Masuk sebagai {email}</p>
-      <h2>Autentikasi dua langkah (2FA)</h2>
+      <h2>Autentikasi dua langkah (2FA) <span className={'chip-status' + (aktif ? ' aktif' : '')}>{aktif ? 'Aktif' : 'Belum aktif'}</span></h2>
 
       {aktif && !qr && <p>2FA sudah aktif untuk akunmu.</p>}
 

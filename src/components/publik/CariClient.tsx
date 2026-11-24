@@ -35,8 +35,18 @@ export function CariClient({ tulisan, rubrik }: { tulisan: TulisanPublik[]; rubr
       ) : (
         hasil.map((t) => (
           <article key={t.slug} className="card pad" style={{ marginTop: 12 }}>
-            <span className="tagl">{t.rubrik}</span>
-            <h3><Link href={`/berita/${t.slug}`}>{t.judul}</Link></h3>
+            <div className={'baris-tulisan' + (t.sampul ? '' : ' tanpa-gambar')}>
+              {t.sampul && (
+                <Link href={`/berita/${t.slug}`} className="baris-thumb" aria-hidden tabIndex={-1}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/sampul/${t.slug}`} alt="" loading="lazy" />
+                </Link>
+              )}
+              <div>
+                <span className="tagl">{t.rubrik}</span>
+                <h3 style={{ margin: '4px 0 0' }}><Link href={`/berita/${t.slug}`}>{t.judul}</Link></h3>
+              </div>
+            </div>
           </article>
         ))
       )}
